@@ -1,2 +1,4 @@
 # Presence
-Who' s who inside
+
+An app to identify and control who's who inside a private space.
+
