@@ -56,7 +56,7 @@ void main() {
       // Both messages should be present
       expect(service.messages.length, 2);
       
-      // After 120ms, first message should be cleared
+      // After total 130ms (50ms + 80ms), first message (100ms duration) should be cleared
       await Future.delayed(const Duration(milliseconds: 80));
       expect(service.messages.length, 1);
       expect(service.messages.first.text, 'Second message');
