@@ -1,7 +1,7 @@
 
 import 'package:flutter/material.dart';
-import 'package:presence_app/login_screen.dart';
-import 'package:presence_app/home_screen.dart';
+import 'package:presence_app/screens/index_screen.dart';
+import 'package:presence_app/screens/home_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/': (context) => const LoginScreen(),
+        '/': (context) => const IndexScreen(),
         '/home': (context) => const HomeScreen(),
       },
     );
