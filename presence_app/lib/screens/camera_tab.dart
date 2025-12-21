@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'dart:io';
+import 'dart:async';
 
 class CameraTab extends StatefulWidget {
   const CameraTab({super.key});
@@ -15,10 +17,16 @@ class _CameraTabState extends State<CameraTab> {
   List<CameraDescription> cameras = [];
   bool _cameraAvailable = false;
   String? _errorMessage;
+  late Timer _screenshotTimer;
+  int _screenshotCount = 0;
+  String? _statusMessage;
+  late Timer _statusTimer;
 
   @override
   void initState() {
     super.initState();
+    // Initialize _statusTimer to avoid LateInitializationError
+    _statusTimer = Timer(Duration.zero, () {});
     _initializeCamera();
   }
 
@@ -40,6 +48,7 @@ class _CameraTabState extends State<CameraTab> {
       setState(() {
         _cameraAvailable = true;
       });
+      _startScreenshotTimer();
     } catch (e) {
       _setUnavailable('Camera not available: $e\n\nNote: Camera may not work on Android emulator. Use a physical device or enable camera emulation in AVD settings.');
     }
@@ -50,6 +59,28 @@ class _CameraTabState extends State<CameraTab> {
     setState(() {
       _cameraAvailable = false;
       _errorMessage = message;
+    });
+  }
+
+  void _showStatusMessage(String message) {
+    if (!mounted) return;
+
+    // Cancel previous timer if it exists
+    if (_statusTimer.isActive) {
+      _statusTimer.cancel();
+    }
+
+    setState(() {
+      _statusMessage = message;
+    });
+
+    // Auto-hide message after 2 seconds
+    _statusTimer = Timer(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          _statusMessage = null;
+        });
+      }
     });
   }
 
@@ -74,8 +105,38 @@ class _CameraTabState extends State<CameraTab> {
     }
   }
 
+  void _startScreenshotTimer() {
+    _screenshotTimer = Timer.periodic(
+      const Duration(milliseconds: 3330), // 3.33 seconds
+      (_) => _takeScreenshot(),
+    );
+  }
+
+  Future<void> _takeScreenshot() async {
+    if (!_cameraAvailable || _controller == null || !_controller!.value.isInitialized) {
+      return;
+    }
+
+    try {
+      final image = await _controller!.takePicture();
+      _screenshotCount++;
+
+      final message = 'Screenshot #$_screenshotCount saved';
+      debugPrint(message);
+      _showStatusMessage(message);
+    } catch (e) {
+      final errorMsg = 'Error taking screenshot: $e';
+      debugPrint(errorMsg);
+      _showStatusMessage('Failed to save screenshot');
+    }
+  }
+
   @override
   void dispose() {
+    _screenshotTimer.cancel();
+    if (_statusTimer.isActive) {
+      _statusTimer.cancel();
+    }
     _controller?.dispose();
     super.dispose();
   }
@@ -137,6 +198,29 @@ class _CameraTabState extends State<CameraTab> {
                   child: const Icon(Icons.flip_camera_ios),
                 ),
               ),
+              if (_statusMessage != null)
+                Positioned(
+                  top: 20,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.black87,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        _statusMessage!,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
             ],
           );
         } else if (snapshot.hasError) {
