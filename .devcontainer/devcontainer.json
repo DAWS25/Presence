@@ -1,0 +1,24 @@
+{
+  "name": "Flutter with Android",
+  "image": "ghcr.io/cirruslabs/flutter:stable",
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "17"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "Dart-Code.flutter",
+        "Dart-Code.dart-code"
+      ]
+    }
+  },
+  "forwardPorts": [3000, 8080, 5555],
+  "postCreateCommand": "flutter doctor && cd presence_app && flutter pub get",
+  "remoteEnv": {
+    "ANDROID_HOME": "/opt/android-sdk-linux",
+    "PATH": "${PATH}:/opt/android-sdk-linux/tools:/opt/android-sdk-linux/platform-tools"
+  }
+}
