@@ -1,0 +1,10 @@
+Passo a passo:
+1- Criar e Testar devcontainer
+1.1 - Adicionar python como servidor web
+    - OK, ja temos python \o/
+    - criar um script que inicia o server
+    - usando pastas separadas para o codigo fonte e o compilado
+    - por enquanto usando o mesmo codigo (index.html)
+    - o comando chmod +x adiciona a permissao de execucao ao script
+    - vamos criar um novo devcontainer pra testar se funcinou
+2- Criar e Testar devbox

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presence - Detecção de Presença</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link href="styles.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Navigation Tabs -->
+        <nav class="tab-nav">
+            <ul class="nav nav-tabs" id="mainTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="camera-tab" data-bs-toggle="tab" data-bs-target="#camera" type="button" role="tab" aria-controls="camera" aria-selected="true">
+                        Camera
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="presenca-tab" data-bs-toggle="tab" data-bs-target="#presenca" type="button" role="tab" aria-controls="presenca" aria-selected="false">
+                        Presença
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="configuracoes-tab" data-bs-toggle="tab" data-bs-target="#configuracoes" type="button" role="tab" aria-controls="configuracoes" aria-selected="false">
+                        Configurações
+                    </button>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="mainTabContent">
+            <!-- Camera Tab -->
+            <div class="tab-pane fade show active" id="camera" role="tabpanel" aria-labelledby="camera-tab">
+                <div class="camera-view">
+                    <video id="video" autoplay playsinline muted></video>
+                    <canvas id="canvas" class="d-none"></canvas>
+                </div>
+            </div>
+
+            <!-- Presença Tab -->
+            <div class="tab-pane fade" id="presenca" role="tabpanel" aria-labelledby="presenca-tab">
+                <div class="presenca-container">
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="presenceTable">
+                            <thead>
+                                <tr>
+                                    <th>Data/Hora</th>
+                                    <th>Evento</th>
+                                    <th>Faces</th>
+                                </tr>
+                            </thead>
+                            <tbody id="presenceBody">
+                                <tr>
+                                    <td colspan="3" class="text-center text-muted">Nenhum evento registrado</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="presenca-actions">
+                        <button id="clearHistoryBtn" class="btn btn-sm btn-outline-danger">
+                            Limpar Histórico
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configurações Tab -->
+            <div class="tab-pane fade" id="configuracoes" role="tabpanel" aria-labelledby="configuracoes-tab">
+                <div class="config-container">
+                    <div class="config-section">
+                        <h5>Configurações da Câmera</h5>
+                        <div class="config-item">
+                            <label for="minConfidence">Confiança Mínima: <span id="confidenceValue">80%</span></label>
+                            <input type="range" class="form-range" id="minConfidence" min="0" max="100" value="80">
+                        </div>
+                        <div class="config-item">
+                            <label for="detectionInterval">Intervalo de Detecção (ms):</label>
+                            <input type="number" class="form-control form-control-sm" id="detectionInterval" min="100" max="5000" value="500">
+                        </div>
+                        <div class="config-item">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="enableLogging" checked>
+                                <label class="form-check-label" for="enableLogging">
+                                    Ativar Logging
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="config-section">
+                        <h5>Sobre</h5>
+                        <p class="small">Presence v1.0.0</p>
+                        <p class="small text-muted">Sistema de detecção de presença usando face-api.js</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-content">
+                <span class="status-label">Faces detectadas:</span>
+                <span class="status-value" id="faceCount">0</span>
+                <span class="status-separator">|</span>
+                <span class="status-label">FPS:</span>
+                <span class="status-value" id="fps">0</span>
+                <span class="status-separator">|</span>
+                <span class="status-label">Status:</span>
+                <span class="status-value" id="status">Iniciando...</span>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- TensorFlow.js - Required by face-api -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.11.0"></script>
+    
+    <!-- Face-api.js -->
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    
+    <!-- Initialize app after all dependencies are loaded -->
+    <script>
+        // Aguardar que faceapi esteja disponível
+        window.addEventListener('load', function() {
+            console.log('✅ Página carregada');
+            console.log('faceapi disponível:', typeof faceapi !== 'undefined');
+            
+            // Dar um pequeno delay adicional para garantir
+            setTimeout(function() {
+                if (typeof PresenceApp !== 'undefined') {
+                    window.presenceApp = new PresenceApp();
+                } else {
+                    console.error('PresenceApp não foi carregada');
+                }
+            }, 500);
+        });
+    </script>
+    
+    <!-- Custom JS -->
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "Presence DevContainer",
+  "image": "mcr.microsoft.com/devcontainers/base",
+  "features": {
+  },
+  "forwardPorts": [8080],
+  "postCreateCommand": "./scripts/postCreateCommand.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+      ]
+    }
+  },
+  "remoteUser": "vscode"
+}

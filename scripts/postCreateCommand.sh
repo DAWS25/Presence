@@ -1,0 +1,9 @@
+#!/bin/env bash
+echo "Starting DevContainer"
+
+# Instalar Python 3 completo com biblioteca padrão
+sudo apt update
+sudo apt install -y python3-full python3-pip
+
+# Instalar livereload para desenvolvimento web
+pip3 install livereload --break-system-packages
