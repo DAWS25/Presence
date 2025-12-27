@@ -7,4 +7,6 @@ Passo a passo:
     - por enquanto usando o mesmo codigo (index.html)
     - o comando chmod +x adiciona a permissao de execucao ao script
     - vamos criar um novo devcontainer pra testar se funcinou
+    - bora testar o devbox e devcontainer pra fechar o primeiro item do ticket
+    
 2- Criar e Testar devbox
