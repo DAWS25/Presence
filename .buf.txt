@@ -8,5 +8,10 @@ Passo a passo:
     - o comando chmod +x adiciona a permissao de execucao ao script
     - vamos criar um novo devcontainer pra testar se funcinou
     - bora testar o devbox e devcontainer pra fechar o primeiro item do ticket
-    
-2- Criar e Testar devbox
+    - devcontainer OK, bora testar o devbox
+    - na maquina "local"
+    - devbox local OK tambem \o/
+    - isso conclui a primeira e segunda partes do ticket
+    - espero que tenham gostado da sessao
+    - nao deixem de seguir o Yellow Cherry Jam, que gentilmente nos cedeu o direito de usar a trilha sonora :=)
+    - ate a proxima 
