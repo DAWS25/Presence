@@ -330,6 +330,14 @@ html, body {
     gap: 0.35rem;
 }
 
+.face-thumb {
+    width: 96px;
+    height: 72px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid var(--bg3);
+}
+
 .status-label {
     color: var(--gray);
     font-weight: 500;
