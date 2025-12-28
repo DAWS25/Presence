@@ -40,7 +40,7 @@
             <div class="tab-pane fade show active" id="camera" role="tabpanel" aria-labelledby="camera-tab">
                 <div class="camera-view">
                     <video id="video" autoplay playsinline muted></video>
-                    <canvas id="canvas" class="d-none"></canvas>
+                    <canvas id="canvas"></canvas>
                 </div>
             </div>
 
@@ -48,7 +48,7 @@
             <div class="tab-pane fade" id="presenca" role="tabpanel" aria-labelledby="presenca-tab">
                 <div class="presenca-container">
                     <div class="table-responsive">
-                        <table class="table table-striped" id="presenceTable">
+                        <table class="table table-sm">
                             <thead>
                                 <tr>
                                     <th>Data/Hora</th>
@@ -57,16 +57,9 @@
                                 </tr>
                             </thead>
                             <tbody id="presenceBody">
-                                <tr>
-                                    <td colspan="3" class="text-center text-muted">Nenhum evento registrado</td>
-                                </tr>
+                                <!-- Preenchido dinamicamente -->
                             </tbody>
                         </table>
-                    </div>
-                    <div class="presenca-actions">
-                        <button id="clearHistoryBtn" class="btn btn-sm btn-outline-danger">
-                            Limpar Histórico
-                        </button>
                     </div>
                 </div>
             </div>
@@ -75,29 +68,34 @@
             <div class="tab-pane fade" id="configuracoes" role="tabpanel" aria-labelledby="configuracoes-tab">
                 <div class="config-container">
                     <div class="config-section">
-                        <h5>Configurações da Câmera</h5>
-                        <div class="config-item">
-                            <label for="minConfidence">Confiança Mínima: <span id="confidenceValue">80%</span></label>
-                            <input type="range" class="form-range" id="minConfidence" min="0" max="100" value="80">
-                        </div>
-                        <div class="config-item">
-                            <label for="detectionInterval">Intervalo de Detecção (ms):</label>
-                            <input type="number" class="form-control form-control-sm" id="detectionInterval" min="100" max="5000" value="500">
-                        </div>
-                        <div class="config-item">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="enableLogging" checked>
-                                <label class="form-check-label" for="enableLogging">
-                                    Ativar Logging
-                                </label>
+                        <h5>Configurações</h5>
+                        <div class="mb-3">
+                            <label for="minConfidence" class="form-label">Confiança mínima</label>
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="range" class="form-range" id="minConfidence" min="0" max="100" value="50">
+                                <span id="confidenceValue">50%</span>
                             </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="detectionInterval" class="form-label">Intervalo de detecção (ms)</label>
+                            <input type="number" class="form-control" id="detectionInterval" value="500" min="100" step="50">
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="enableLogging">
+                            <label class="form-check-label" for="enableLogging">
+                                Ativar logging
+                            </label>
                         </div>
                     </div>
 
-                    <div class="config-section">
+                    <div class="config-section mt-4">
                         <h5>Sobre</h5>
-                        <p class="small">Presence v1.0.0</p>
-                        <p class="small text-muted">Sistema de detecção de presença usando face-api.js</p>
+                        <p>
+                            <strong>Versão:</strong> <span id="versionLabel">-</span>
+                        </p>
+                        <p>
+                            <strong>Status:</strong> <span id="appStatus">-</span>
+                        </p>
                     </div>
                 </div>
             </div>
@@ -105,46 +103,36 @@
 
         <!-- Status Bar -->
         <div class="status-bar">
-            <div class="status-content">
-                <span class="status-label">Faces detectadas:</span>
-                <span class="status-value" id="faceCount">0</span>
-                <span class="status-separator">|</span>
-                <span class="status-label">FPS:</span>
-                <span class="status-value" id="fps">0</span>
-                <span class="status-separator">|</span>
-                <span class="status-label">Status:</span>
-                <span class="status-value" id="status">Iniciando...</span>
+            <div class="status-left">
+                <span class="status-value text-muted" id="statusMessage">✓ Pronto</span>
+            </div>
+            <div class="status-right">
+                <div class="status-item">
+                    <span class="status-label">Faces:</span>
+                    <span class="status-value" id="faceCount">0</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Versão:</span>
+                    <span class="status-value" id="versionStatus">-</span>
+                </div>
             </div>
         </div>
-    </div>
     </div>
 
     <!-- Bootstrap JS -->
     <script src="node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- TensorFlow.js - Required by face-api -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.11.0"></script>
-    
-    <!-- Face-api.js -->
+    <!-- Face-api.js (includes its own TensorFlow.js) -->
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
     
-    <!-- Initialize app after all dependencies are loaded -->
-    <script>
-        // Aguardar que faceapi esteja disponível
-        window.addEventListener('load', function() {
-            console.log('✅ Página carregada');
-            console.log('faceapi disponível:', typeof faceapi !== 'undefined');
-            
-            // Dar um pequeno delay adicional para garantir
-            setTimeout(function() {
-                if (typeof PresenceApp !== 'undefined') {
-                    window.presenceApp = new PresenceApp();
-                } else {
-                    console.error('PresenceApp não foi carregada');
-                }
-            }, 500);
-        });
-    </script>
+    <!-- Version -->
+    <script src="version.js"></script>
+    
+    <!-- Event Management -->
+    <script src="events.js"></script>
+    
+    <!-- Notifications -->
+    <script src="notifications.js"></script>
     
     <!-- Custom JS -->
     <script src="app.js"></script>
