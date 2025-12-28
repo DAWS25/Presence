@@ -1,0 +1,17 @@
+{
+  "name": "presence-web",
+  "version": "1.0.0",
+  "description": "Web application for presence detection with face-api.js",
+  "type": "module",
+  "scripts": {
+    "dev": "http-server -p 8000 -c-1",
+    "start": "http-server -p 8000"
+  },
+  "dependencies": {
+    "bootstrap": "^5.3.0",
+    "face-api.js": "^0.22.2"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}

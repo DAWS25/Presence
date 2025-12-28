@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presence - Detecção de Presença</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="node_modules/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link href="styles.css" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='8' ry='8' fill='%2332302f'/%3E%3Ccircle cx='22' cy='26' r='6' fill='%237daea3'/%3E%3Ccircle cx='42' cy='26' r='6' fill='%237daea3'/%3E%3Cpath d='M18 42c4 4 24 4 28 0' stroke='%23a9b665' stroke-width='4' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Navigation Tabs -->
+        <nav class="tab-nav">
+            <ul class="nav nav-tabs" id="mainTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="camera-tab" data-bs-toggle="tab" data-bs-target="#camera" type="button" role="tab" aria-controls="camera" aria-selected="true">
+                        Camera
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="presenca-tab" data-bs-toggle="tab" data-bs-target="#presenca" type="button" role="tab" aria-controls="presenca" aria-selected="false">
+                        Presença
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="configuracoes-tab" data-bs-toggle="tab" data-bs-target="#configuracoes" type="button" role="tab" aria-controls="configuracoes" aria-selected="false">
+                        Configurações
+                    </button>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="mainTabContent">
+            <!-- Camera Tab -->
+            <div class="tab-pane fade show active" id="camera" role="tabpanel" aria-labelledby="camera-tab">
+                <div class="camera-view">
+                    <video id="video" autoplay playsinline muted></video>
+                    <canvas id="canvas"></canvas>
+                </div>
+            </div>
+
+            <!-- Presença Tab -->
+            <div class="tab-pane fade" id="presenca" role="tabpanel" aria-labelledby="presenca-tab">
+                <div class="presenca-container">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Pessoa</th>
+                                    <th>Eventos</th>
+                                    <th>Último</th>
+                                    <th>Imagem</th>
+                                </tr>
+                            </thead>
+                            <tbody id="presenceBody">
+                                <!-- Preenchido dinamicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Configurações Tab -->
+            <div class="tab-pane fade" id="configuracoes" role="tabpanel" aria-labelledby="configuracoes-tab">
+                <div class="config-container">
+                    <div class="config-section">
+                        <h5>Configurações</h5>
+                        <div class="mb-3">
+                            <label for="minConfidence" class="form-label">Confiança mínima</label>
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="range" class="form-range" id="minConfidence" min="0" max="100" value="50">
+                                <span id="confidenceValue">50%</span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="detectionInterval" class="form-label">Intervalo de detecção (ms)</label>
+                            <input type="number" class="form-control" id="detectionInterval" value="500" min="100" step="50">
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="enableLogging">
+                            <label class="form-check-label" for="enableLogging">
+                                Ativar logging
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="config-section mt-4">
+                        <h5>Sobre</h5>
+                        <p>
+                            <strong>Versão:</strong> <span id="versionLabel">-</span>
+                        </p>
+                        <p>
+                            <strong>Status:</strong> <span id="appStatus">-</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-left">
+                <span class="status-value text-muted" id="statusMessage">✓ Pronto</span>
+            </div>
+            <div class="status-right">
+                <div class="status-item">
+                    <span class="status-label">Faces:</span>
+                    <span class="status-value" id="faceCount">0</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Versão:</span>
+                    <span class="status-value" id="versionStatus">-</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Face-api.js (includes its own TensorFlow.js) -->
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    
+    <!-- Version -->
+    <script src="version.js"></script>
+    
+    <!-- Event Management -->
+    <script src="events.js"></script>
+    
+    <!-- Notifications -->
+    <script src="notifications.js"></script>
+
+    <!-- Presence History -->
+    <script src="presence_history.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="app.js"></script>
+</body>
+</html>
