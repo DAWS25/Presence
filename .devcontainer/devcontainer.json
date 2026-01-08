@@ -2,13 +2,13 @@
   "name": "Presence DevContainer",
   "image": "mcr.microsoft.com/devcontainers/base",
   "features": {
+    "ghcr.io/devcontainers/features/aws-cli:1": {}
   },
   "forwardPorts": [8080],
   "postCreateCommand": "./scripts/postCreateCommand.sh",
   "customizations": {
     "vscode": {
-      "extensions": [
-      ]
+      "extensions": ["aws-scripting-guy.cform"]
     }
   },
   "remoteUser": "vscode"
