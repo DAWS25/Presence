@@ -1,132 +1,71 @@
-# aws cloudformation deploy --stack-name s3-distribution --template-file solutions/petoboto-resources/bucket.cform.yaml
-# aws s3 cp solutions/petoboto-resources/src/ s3://$BUCKET_NAME/ --acl public-read
+# BUCKET_NAME="moontracer-distribution"
+# DOMAIN_NAME="moontracer.faermanj.com"
+# ZONE_ID="Z044981111XDI2RGQ2GM9"
+# CERTIFICATE_ARN="arn:aws:acm:us-east-1:730335617563:certificate/777043cb-290c-4e63-8a20-c970da31a8bf"
 
-# aws cloudformation deploy --stack-name vpc-3ha --template-file cloudformation/vpc-3ha/template.cform.yaml
-# aws cloudformation deploy --stack-name rds-mysql-sls --template-file cloudformation/rds-mysql-sls/template.cform.yaml --parameter-overrides DBPassword=Masterkey123
-# mvn -f solutions/petoboto-api-fn clean verify
-# sam deploy --stack-name petoboto-api-fn --template-file solutions/petoboto-api-fn/sam.cform.yaml --capabilities CAPABILITY_IAM --resolve-s3
-# API_URL=$(aws cloudformation describe-stacks --stack-name petoboto-api-fn --query "Stacks[0].Outputs[?OutputKey=='PetobotoApiUrl'].OutputValue" --output text)
-# echo $API_URL
-# curl -s "$API_URL/api/pets/"
+# aws cloudformation deploy --template-file cloudformation/static-distribution/template.cform.yaml --stack-name "moontracer-stack" --parameter-overrides BucketName=$BUCKET_NAME DomainName=$DOMAIN_NAME HostedZoneId=$ZONE_ID CertificateArn=$CERTIFICATE_ARN --capabilities CAPABILITY_IAM
 
-# aws cloudformation deploy --stack-name cloudfront --template-file cloudformation/cloudfront/template.cform.yaml
-# DISTRIBUTION_DOMAIN=$(aws cloudformation describe-stacks --stack-name cloudfront --query "Stacks[0].Outputs[?OutputKey=='DistributionDomainName'].OutputValue" --output text)
-# echo "http://$DISTRIBUTION_DOMAIN/"
-# echo "http://$DISTRIBUTION_DOMAIN/tuna-bigfile.jpg"
-# time curl -s "http://$DISTRIBUTION_DOMAIN/tuna-bigfile.jpg" -o /dev/null
-# ab -k -t 333 -c 22 -r "http://$DISTRIBUTION_DOMAIN/tuna-bigfile.jpg"
+# aws s3 sync ./solutions/moontracer-workshop/distribution s3://$BUCKET_NAME --delete
 
-AWSTemplateFormatVersion: 2010-09-09
-Description: CloudFront distribution with S3 default origin
+Description: "Static website distribution with S3 bucket, CloudFront distribution, and Origin Access Control"
 
 Parameters:
   EnvId:
     Type: String
-    Default: distribution
-    Description: Environment identifier used for cross-stack imports.
+    Default: project
+    Description: Environment identifier used to prefix exported outputs.
 
   DomainName:
     Type: String
-    Description: "The domain name for the Distribution"
-  
-  LogCookies:
+    Description: Custom domain name for the CloudFront distribution (e.g., www.example.com)
+    AllowedPattern: ^[a-zA-Z0-9][a-zA-Z0-9-_.]*[a-zA-Z0-9]$
+
+  HostedZoneId:
     Type: String
-    Default: "true"
+    Description: Route53 Hosted Zone ID for the domain
+
+  CertificateArn:
+    Type: String
+    Description: ARN of the SSL certificate in ACM (must be in us-east-1 for CloudFront)
+    AllowedPattern: ^arn:aws:acm:us-east-1:[0-9]{12}:certificate\/[a-f0-9-]+$
+    ConstraintDescription: Must be a valid ACM certificate ARN in us-east-1 region
 
 Resources:
-  LogsBucket:
+  # S3 Bucket for static files
+  DistributionBucket:
     Type: AWS::S3::Bucket
     Properties:
-      OwnershipControls:
-        Rules:
-          - ObjectOwnership: BucketOwnerPreferred
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
 
+  # Origin Access Control for CloudFront to access S3
   OriginAccessControl:
     Type: AWS::CloudFront::OriginAccessControl
     Properties:
       OriginAccessControlConfig:
-        Name: !Sub "${EnvId}-oac"
-        Description: !Sub "OAC for CloudFront distribution ${EnvId}"
+        Name: !Sub "${AWS::StackName}-OAC"
         OriginAccessControlOriginType: s3
         SigningBehavior: always
         SigningProtocol: sigv4
+        Description: !Sub "Origin Access Control for ${AWS::StackName}"
 
-  Distribution:
+  # CloudFront Distribution
+  CloudFrontDistribution:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
-        Comment: !Sub "CloudFront distribution for ${EnvId}"
-        Enabled: true
-        PriceClass: PriceClass_100
-        DefaultRootObject: index.html
-        Logging:
-          Bucket: !Sub "${LogsBucket}.s3.amazonaws.com"
-          Prefix: !Sub "cloudfront/${EnvId}/"
-          IncludeCookies: !Ref LogCookies
         Aliases:
-          - !Sub "distribution.${DomainName}"
-        ViewerCertificate:
-          SslSupportMethod: sni-only
-          AcmCertificateArn:
-            Fn::ImportValue: !Sub "${EnvId}-AcmCertificateArn"
-          MinimumProtocolVersion: TLSv1.2_2021
-
-        Origins:
-          - Id: S3Origin
-            DomainName:
-              Fn::Sub:
-                - ${BucketName}.s3.${AWS::Region}.amazonaws.com
-                - BucketName:
-                    Fn::ImportValue:
-                      Fn::Sub: "${EnvId}-ResourcesBucketName"
-            OriginAccessControlId: !Ref OriginAccessControl
-            S3OriginConfig: {}
-
-          - Id: APIOrigin
-            # redirect to API Gateway endpoint http api on /api/*
-            DomainName:
-              Fn::ImportValue:
-                Fn::Sub: "${EnvId}-PetobotoApiDnsName"
-            CustomOriginConfig:
-              HTTPPort: 80
-              HTTPSPort: 443
-              OriginProtocolPolicy: https-only
-        CacheBehaviors:
-          - PathPattern: /api/*
-            TargetOriginId: APIOrigin
-            ViewerProtocolPolicy: https-only
-            AllowedMethods:
-              - HEAD
-              - DELETE
-              - POST
-              - GET
-              - OPTIONS
-              - PUT
-              - PATCH
-            CachedMethods:
-              - GET
-              - HEAD
-            Compress: true
-            ForwardedValues:
-              QueryString: true
-              Cookies:
-                Forward: all
+          - !Ref DomainName
+        Comment: !Sub "Static distribution for ${DomainName}"
         DefaultCacheBehavior:
           TargetOriginId: S3Origin
           ViewerProtocolPolicy: https-only
           AllowedMethods:
-            - HEAD
-            - DELETE
-            - POST
             - GET
-            - OPTIONS
-            - PUT
-            - PATCH
+            - HEAD
           CachedMethods:
             - GET
             - HEAD
@@ -134,64 +73,81 @@ Resources:
           ForwardedValues:
             QueryString: false
             Cookies:
-              Forward: all
+              Forward: none
+        DefaultRootObject: index.html
+        Enabled: true
+        Origins:
+          - Id: S3Origin
+            DomainName:
+              Fn::ImportValue: !Sub "${EnvId}-ResourcesBucketDomainName"
+            OriginAccessControlId: !Ref OriginAccessControl
+            S3OriginConfig:
+              OriginAccessIdentity: ""
+        ViewerCertificate:
+          AcmCertificateArn: !Ref CertificateArn
+          SslSupportMethod: sni-only
 
-  ResourcesBucketPolicy:
+  # Bucket Policy to allow CloudFront access via OAC
+  BucketPolicy:
     Type: AWS::S3::BucketPolicy
+    DependsOn: CloudFrontDistribution
     Properties:
       Bucket:
-        Fn::ImportValue:
-          Fn::Sub: "${EnvId}-ResourcesBucketName"
+        Fn::ImportValue: !Sub "${EnvId}-ResourcesBucketName"
       PolicyDocument:
-        Version: "2012-10-17"
         Statement:
-          - Sid: AllowCloudFrontServicePrincipalReadOnly
+          - Sid: AllowCloudFrontServicePrincipal
             Effect: Allow
             Principal:
-              Service: cloudfront.amazonaws.com   
-            Action:
-              - s3:GetObject
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
             Resource:
               Fn::Sub:
-                - arn:aws:s3:::${BucketName}/*
-                - BucketName:
-                    Fn::ImportValue:
-                      Fn::Sub: "${EnvId}-ResourcesBucketName"
+                - "arn:aws:s3:::${ResourcesBucketName}/*"
+                - ResourcesBucketName:
+                    Fn::ImportValue: !Sub "${EnvId}-ResourcesBucketName"
             Condition:
               StringEquals:
-                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${Distribution}"
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}"
 
-  LogsBucketPolicy:
-    Type: AWS::S3::BucketPolicy
+  # Route53 Record for custom domain
+  DNSRecord:
+    Type: AWS::Route53::RecordSet
     Properties:
-      Bucket: !Ref LogsBucket
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Sid: AllowCloudFrontDeliveryV2PutObject
-            Effect: Allow
-            Principal:
-              Service: delivery.logs.amazonaws.com
-            Action:
-              - s3:PutObject
-            Resource:
-              Fn::Sub: "arn:aws:s3:::${LogsBucket}/cloudfront/${EnvId}/*"
-            Condition:
-              StringEquals:
-                s3:x-amz-acl: bucket-owner-full-control
-                aws:SourceAccount: !Sub "${AWS::AccountId}"
-              ArnLike:
-                aws:SourceArn: !Sub "arn:aws:logs:us-east-1:${AWS::AccountId}:delivery-source/*"
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Ref DomainName
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt CloudFrontDistribution.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2
 
 Outputs:
+  BucketDomainName:
+    Description: Regional domain name of the S3 bucket
+    Value: !GetAtt DistributionBucket.RegionalDomainName
+    Export:
+      Name: !Sub "${AWS::StackName}-BucketDomainName"
+
   DistributionId:
-    Description: CloudFront distribution identifier.
-    Value: !Ref Distribution
+    Description: CloudFront distribution ID
+    Value: !Ref CloudFrontDistribution
     Export:
-      Name: !Sub "${EnvId}-DistributionId"
-      
+      Name: !Sub "${AWS::StackName}-DistributionId"
+
   DistributionDomainName:
-    Description: CloudFront distribution domain name.
-    Value: !GetAtt Distribution.DomainName
+    Description: CloudFront distribution domain name
+    Value: !GetAtt CloudFrontDistribution.DomainName
     Export:
-      Name: !Sub "${EnvId}-DistributionDomainName"
+      Name: !Sub "${AWS::StackName}-DistributionDomainName"
+
+  WebsiteURL:
+    Description: Website URL with custom domain
+    Value: !Sub "https://${DomainName}"
+    Export:
+      Name: !Sub "${AWS::StackName}-WebsiteURL"
+
+  OriginAccessControlId:
+    Description: Origin Access Control ID
+    Value: !Ref OriginAccessControl
+    Export:
+      Name: !Sub "${AWS::StackName}-OACId"

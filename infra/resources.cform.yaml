@@ -21,7 +21,19 @@ Resources:
 
 Outputs:
   ResourcesBucketName:
-    Description: Resource bucket name.
+    Description: Static web resource bucket name
     Value: !Ref ResourcesBucket
     Export:
       Name: !Sub "${EnvId}-ResourcesBucketName"
+
+  ResourcesBucketArn:
+    Description: Static web resource bucket ARN
+    Value: !GetAtt ResourcesBucket.Arn
+    Export:
+      Name: !Sub "${EnvId}-ResourcesBucketArn"
+
+  ResourcesBucketDomainName:
+    Description: Static web resource bucket domain name
+    Value: !GetAtt ResourcesBucket.RegionalDomainName
+    Export:
+      Name: !Sub "${EnvId}-ResourcesBucketDomainName"
