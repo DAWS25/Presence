@@ -1,13 +1,14 @@
 #!/bin/env bash
 echo "Starting DevContainer"
 
-# Instalar Python 3 completo com biblioteca padrão
-
+# Install system tools
 sudo apt update
-sudo apt install -y python3-full python3-pip
+sudo apt install -y python3-full python3-pip nodejs npm
 
-# Instalar Node.js e npm
-sudo apt install -y nodejs npm
-
-# Instalar livereload para desenvolvimento web
+# Install livereload for web development
 pip3 install livereload --break-system-packages
+
+# Links exising tools
+ln -s /usr/games/cowsay /usr/local/bin/cowsay
+
+echo "Done postCreateCommand.sh"
