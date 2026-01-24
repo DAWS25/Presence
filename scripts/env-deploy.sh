@@ -3,17 +3,6 @@ set -ex
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DIR="$(dirname "$SCRIPT_DIR")"
 # 
-ENV_ID=${ENV_ID:-"project-alpha"}
-
-# Load Configuration
-ENV_FILE="$DIR/env/$ENV_ID/.envrc"
-if [ -f "$ENV_FILE" ]; then
-    echo "🔧 Loading $ENV_FILE..."
-    source "$ENV_FILE"
-else
-    echo "❌ $ENV_FILE not found!"
-    exit 1
-fi
 
 # Build
 source "$SCRIPT_DIR/env-build.sh"
