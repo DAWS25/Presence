@@ -202,9 +202,3 @@ class PresenceApp {
         this.statusEl.className = `status-value text-${type}`;
     }
 }
-
-window.addEventListener('load', () => {
-    setTimeout(() => {
-        new PresenceApp();
-    }, 500);
-});

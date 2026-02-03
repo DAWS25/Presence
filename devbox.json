@@ -4,17 +4,15 @@
     "nodejs@22",
     "python3@3.12",
     "python312Packages.pip",
-    "python312Packages.livereload"
+    "python312Packages.livereload",
+    "direnv@latest"
   ],
   "shell": {
-    "init_hook": [
-      "echo '🚀 Presence Development Environment'",
-      "cd presence_web && npm install --silent 2>/dev/null || true"
-    ],
+    "init_hook": ["scripts/devbox-init-hook.sh"],
     "scripts": {
-      "dev": ["bash scripts/dev-web-start.sh"],
+      "dev":     ["bash scripts/dev-web-start.sh"],
       "install": ["cd presence_web && npm install"],
-      "test": ["echo \"Error: no test specified\" && exit 1"]
+      "test":    ["echo \"Error: no test specified\" && exit 1"]
     }
   }
 }

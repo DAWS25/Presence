@@ -20,3 +20,7 @@ npm-debug.log*
 
 # Cache
 .cache/
+
+.envrc
+.venv
+node_modules
