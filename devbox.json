@@ -5,7 +5,8 @@
     "python3@3.12",
     "python312Packages.pip",
     "python312Packages.livereload",
-    "direnv@latest"
+    "direnv@latest",
+    "aws-sam-cli@latest"
   ],
   "shell": {
     "init_hook": ["scripts/devbox-init-hook.sh"],

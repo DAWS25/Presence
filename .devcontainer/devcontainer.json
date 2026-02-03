@@ -5,8 +5,12 @@
     "ghcr.io/devcontainers/features/common-utils:2": {},
     "ghcr.io/devcontainers-community/features/direnv:1": {},
     "ghcr.io/devcontainers/features/aws-cli:1": {},
-    "ghcr.io/dlouwers/devcontainer-features/devbox:1": {}
+    "ghcr.io/dlouwers/devcontainer-features/devbox:1": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
   },
+  "runArgs": [
+    "--privileged"
+  ],
   "forwardPorts": [8080],
   "postCreateCommand": "./scripts/postCreateCommand.sh",
   "customizations": {
