@@ -8,6 +8,9 @@ sudo apt install -y python3-full python3-pip nodejs npm
 # Install livereload for web development
 pip3 install livereload --break-system-packages
 
+# TODO: Setup devbox
+# curl -fsSL https://get.devbox.sh | bash
+
 # Nix fix
 sudo chown -R $USER /nix
 
