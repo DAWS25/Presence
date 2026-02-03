@@ -15,7 +15,7 @@ fi
 
 aws cloudformation deploy \
     --stack-name $ENV_ID-resources \
-    --template-file $DIR/infra/resources.cform.yaml \
+    --template-file $DIR/presence_infra/resources.cform.yaml \
     --parameter-overrides EnvId="$ENV_ID"
 
 BUCKET_NAME=$(aws cloudformation describe-stacks \
@@ -27,7 +27,7 @@ aws s3 sync $DIR/presence_web/target/ s3://$BUCKET_NAME/ --delete
 
 aws cloudformation deploy \
     --stack-name $ENV_ID-distribution \
-    --template-file $DIR/infra/distribution.cform.yaml \
+    --template-file $DIR/presence_infra/distribution.cform.yaml \
     --parameter-overrides \
         EnvId="$ENV_ID" \
         DomainName="$DOMAIN_NAME" \
