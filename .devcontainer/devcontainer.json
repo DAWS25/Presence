@@ -1,6 +1,6 @@
 {
   "name": "Presence DevContainer",
-  "image": "mcr.microsoft.com/devcontainers/base",
+  "image": "mcr.microsoft.com/devcontainers/base:trixie",
   
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {
