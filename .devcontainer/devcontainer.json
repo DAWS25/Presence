@@ -21,7 +21,21 @@
   "postCreateCommand": "source ./.devcontainer/post-create.sh",
   "customizations": {
     "vscode": {
-      "extensions": ["aws-scripting-guy.cform"]
+      "extensions": [
+          "ms-azuretools.vscode-docker",
+
+          "github.copilot",
+          "github.copilot-chat",
+
+          "aws-scripting-guy.cform",
+
+          "ms-python.python",
+          
+          "mkhl.direnv",
+          
+          "jetpack-io.devbox"
+        
+      ]
     }
   },
   "remoteUser": "vscode"
