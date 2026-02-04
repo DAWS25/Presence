@@ -9,12 +9,15 @@
       "userGid": "1000"
     },
     "ghcr.io/devcontainers/features/docker-in-docker:2.14.0": {},
-    "ghcr.io/devcontainers-community/features/direnv:1": {},
-    "ghcr.io/devcontainers/features/aws-cli:1": {}
+    "ghcr.io/devcontainers-community/features/direnv:1": {}
 
   },
 
-  "forwardPorts": [8080],
+  "forwardPorts": [
+    9443,
+    8080, 3000
+  ],
+
   "postCreateCommand": "source ./.devcontainer/post-create.sh",
   "customizations": {
     "vscode": {
