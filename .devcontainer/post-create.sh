@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
 
-# Nix fix
-mkdir -p /nix
-sudo chown -R $USER /nix
-
 # Package manager detection (apt or yum only)
 if command -v apt-get &> /dev/null; then
     echo "Using apt-get as package manager."
@@ -22,6 +18,20 @@ fi
 
 # Update package lists
 ${PKG_UPDATE_CMD}
+
+# Devbox setup
+if ! command -v devbox &> /dev/null
+then
+    echo "devbox could not be found, installing"
+    export PATH="$HOME/.devbox/bin:$PATH"
+    mkdir -p /nix/var/nix/db
+    # sudo chown -R $(whoami) /nix
+    curl -fsSL https://get.jetify.com/devbox | bash -s -- --force
+    yes | devbox install 
+fi 
+# Nix fix
+mkdir -p /nix
+sudo chown -R $USER /nix
 
 # DirEnv setup
 if ! command -v direnv &> /dev/null
