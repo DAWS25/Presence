@@ -28,9 +28,7 @@ then
     sudo chown -R $(whoami) /nix
     curl -fsSL https://get.jetify.com/devbox | bash -s -- --force
     yes | devbox install 
-fi 
-# Nix fix
-mkdir -p /nix
+fi
 sudo chown -R $USER /nix
 
 # DirEnv setup
