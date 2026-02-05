@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 # Package manager detection (apt or yum only)
 if command -v apt-get &> /dev/null; then
@@ -25,7 +25,7 @@ then
     echo "devbox could not be found, installing"
     export PATH="$HOME/.devbox/bin:$PATH"
     mkdir -p /nix/var/nix/db
-    # sudo chown -R $(whoami) /nix
+    sudo chown -R $(whoami) /nix
     curl -fsSL https://get.jetify.com/devbox | bash -s -- --force
     yes | devbox install 
 fi 

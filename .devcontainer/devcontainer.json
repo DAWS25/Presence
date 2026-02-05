@@ -17,7 +17,7 @@
     8080, 3000
   ],
 
-  "postCreateCommand": "source ./.devcontainer/post-create.sh",
+  "postCreateCommand": "./.devcontainer/post-create.sh",
   "customizations": {
     "vscode": {
       "extensions": [
