@@ -1,0 +1,15 @@
+services:
+  proxy:
+    image: nginx:latest
+    container_name: proxy
+#    network_mode: host
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ${PWD}/presence_web/target:/usr/share/nginx/html:ro,z
+      - ${PWD}/presence_proxy/nginx.conf:/etc/nginx/conf.d/nginx.conf:ro,z
+      - ${PWD}/presence_cert:/etc/ssl/localcerts:ro,z
+    ports:
+      - 10443:10443
+    expose:
+      - 10443

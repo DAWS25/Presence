@@ -1,7 +1,7 @@
 {
   "name": "Presence DevContainer",
-  "image": "debian:bookworm",
   
+  "image": "debian:bookworm",
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {
       "username": "vscode",
@@ -9,15 +9,15 @@
       "userGid": "1000"
     },
     "ghcr.io/devcontainers/features/docker-in-docker:2.14.0": {}
-
   },
+  "postCreateCommand": "./.devcontainer/post-create.sh",
 
   "forwardPorts": [
     9443,
+    4566,
     8080, 3000
   ],
 
-  "postCreateCommand": "./.devcontainer/post-create.sh",
   "customizations": {
     "vscode": {
       "extensions": [

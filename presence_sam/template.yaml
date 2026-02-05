@@ -7,7 +7,7 @@ Description: >
 
 Globals:
   Function:
-    Timeout: 5
+    Timeout: 15
     MemorySize: 128
 
 Resources:
@@ -18,13 +18,13 @@ Resources:
       Handler: app.handler
       Runtime: python3.12
       Architectures:
-        - x86_64
+        - arm64
       Events:
-        Presence:
+        PresenceApi:
           Type: HttpApi
           Properties:
-            Path: /{proxy+}
-            Method: ANY
+            Path: "{proxy+}"
+            Method: "ANY"
 
 Outputs:
   PresenceApi:

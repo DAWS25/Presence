@@ -1,0 +1,49 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: ACM Certificate with DNS validation for domain and wildcard subdomain
+
+Parameters:
+  EnvId:
+    Type: String
+    Default: project
+    Description: Environment identifier used to prefix exported outputs.
+  
+  DomainName:
+    Type: String
+    Description: Custom domain name for the CloudFront distribution (e.g., www.example.com)
+    AllowedPattern: ^[a-zA-Z0-9][a-zA-Z0-9-_.]*[a-zA-Z0-9]$
+
+  HostedZoneId:
+    Type: String
+    Description: Route53 Hosted Zone ID for the domain
+
+Resources:
+  Certificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName: !Ref DomainName
+      SubjectAlternativeNames:
+        - !Sub "*.${DomainName}"
+      ValidationMethod: DNS
+      DomainValidationOptions:
+        - DomainName: !Ref DomainName
+          HostedZoneId: !Ref HostedZoneId
+        - DomainName: !Sub "*.${DomainName}"
+          HostedZoneId: !Ref HostedZoneId
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvId}-certificate"
+        - Key: Environment
+          Value: !Ref EnvId
+
+Outputs:
+  CertificateArn:
+    Description: ARN of the ACM certificate
+    Value: !Ref Certificate
+    Export:
+      Name: !Sub "${EnvId}-CertificateArn"
+
+  DomainName:
+    Description: Primary domain name
+    Value: !Ref DomainName
+    Export:
+      Name: !Sub "${EnvId}-CertificateDomainName"

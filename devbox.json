@@ -8,7 +8,9 @@
     "direnv@latest",
     "aws-sam-cli@latest",
     "localstack@latest",
-    "awscli2@latest"
+    "awscli2@latest",
+    "mkcert@latest",
+    "uv@latest"
   ],
   "shell": {
     "init_hook": ["scripts/devbox-init-hook.sh"],

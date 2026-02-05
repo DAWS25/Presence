@@ -1,0 +1,27 @@
+
+Parameters:
+  EnvId:
+    Type: String
+    Default: project
+    Description: Environment identifier used to prefix exported outputs.
+
+  DomainName:
+    Type: String
+    Description: Custom domain name for the CloudFront distribution (e.g., www.example.com)
+    AllowedPattern: ^[a-zA-Z0-9][a-zA-Z0-9-_.]*[a-zA-Z0-9]$
+
+Resources:
+  # Route53 Record for custom domain
+  HostedZone:
+    Type: AWS::Route53::HostedZone
+    Properties:
+      Name: !Ref DomainName
+      HostedZoneConfig:
+        Comment: !Sub "Hosted zone for ${DomainName}"
+
+Outputs:
+  HostedZoneId:
+    Description: Hosted Zone ID for the custom domain
+    Value: !Ref HostedZone
+    Export:
+      Name: !Sub "${EnvId}-HostedZoneId"

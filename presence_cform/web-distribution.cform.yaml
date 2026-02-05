@@ -20,16 +20,6 @@ Parameters:
     Description: Custom domain name for the CloudFront distribution (e.g., www.example.com)
     AllowedPattern: ^[a-zA-Z0-9][a-zA-Z0-9-_.]*[a-zA-Z0-9]$
 
-  HostedZoneId:
-    Type: String
-    Description: Route53 Hosted Zone ID for the domain
-
-  CertificateArn:
-    Type: String
-    Description: ARN of the SSL certificate in ACM (must be in us-east-1 for CloudFront)
-    AllowedPattern: ^arn:aws:acm:us-east-1:[0-9]{12}:certificate\/[a-f0-9-]+$
-    ConstraintDescription: Must be a valid ACM certificate ARN in us-east-1 region
-
 Resources:
   # S3 Bucket for static files
   DistributionBucket:
@@ -84,7 +74,8 @@ Resources:
             S3OriginConfig:
               OriginAccessIdentity: ""
         ViewerCertificate:
-          AcmCertificateArn: !Ref CertificateArn
+          AcmCertificateArn:
+            Fn::ImportValue: !Sub "${EnvId}-CertificateArn"
           SslSupportMethod: sni-only
 
   # Bucket Policy to allow CloudFront access via OAC
@@ -110,16 +101,7 @@ Resources:
               StringEquals:
                 AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}"
 
-  # Route53 Record for custom domain
-  DNSRecord:
-    Type: AWS::Route53::RecordSet
-    Properties:
-      HostedZoneId: !Ref HostedZoneId
-      Name: !Ref DomainName
-      Type: A
-      AliasTarget:
-        DNSName: !GetAtt CloudFrontDistribution.DomainName
-        HostedZoneId: Z2FDTNDATAQYW2
+
 
 Outputs:
   BucketDomainName:
@@ -138,13 +120,8 @@ Outputs:
     Description: CloudFront distribution domain name
     Value: !GetAtt CloudFrontDistribution.DomainName
     Export:
-      Name: !Sub "${AWS::StackName}-DistributionDomainName"
+      Name: !Sub "${EnvId}-DistributionDomainName"
 
-  WebsiteURL:
-    Description: Website URL with custom domain
-    Value: !Sub "https://${DomainName}"
-    Export:
-      Name: !Sub "${AWS::StackName}-WebsiteURL"
 
   OriginAccessControlId:
     Description: Origin Access Control ID

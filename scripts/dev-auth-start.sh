@@ -5,9 +5,7 @@ DIR="$(dirname "$SCRIPT_DIR")"
 pushd "$DIR"
 # 
 
-pushd "$DIR/presence_sam"
-sam local start-api --host 0.0.0.0 --port 9726
-popd
+python presence_auth/main.py
 
 #
 popd
