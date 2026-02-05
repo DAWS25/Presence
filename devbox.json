@@ -6,7 +6,9 @@
     "python312Packages.pip",
     "python312Packages.livereload",
     "direnv@latest",
-    "aws-sam-cli@latest"
+    "aws-sam-cli@latest",
+    "localstack@latest",
+    "awscli2@latest"
   ],
   "shell": {
     "init_hook": ["scripts/devbox-init-hook.sh"],

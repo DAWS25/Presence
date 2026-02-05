@@ -65,6 +65,70 @@
         }
       }
     },
+    "awscli2@latest": {
+      "last_modified": "2026-01-23T17:20:52Z",
+      "resolved": "github:NixOS/nixpkgs/a1bab9e494f5f4939442a57a58d0449a109593fe#awscli2",
+      "source": "devbox-search",
+      "version": "2.33.2",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/6812vpz14kjmdg44zk6rd68pigjm1ppf-awscli2-2.33.2",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/qf0ylzfbs04id336lpk5p447xg3pbiwb-awscli2-2.33.2-dist"
+            }
+          ],
+          "store_path": "/nix/store/6812vpz14kjmdg44zk6rd68pigjm1ppf-awscli2-2.33.2"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/kpda33y4sg4nblzisl41i03n9hzgcalf-awscli2-2.33.2",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/5nqsg97znbj4zr9lli198b3l2aldzh2c-awscli2-2.33.2-dist"
+            }
+          ],
+          "store_path": "/nix/store/kpda33y4sg4nblzisl41i03n9hzgcalf-awscli2-2.33.2"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/kzlq4xl48jj0v7a4a675p4a03fmy7wx9-awscli2-2.33.2",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/lpyg69n78pis2563gdrb7c139d63jind-awscli2-2.33.2-dist"
+            }
+          ],
+          "store_path": "/nix/store/kzlq4xl48jj0v7a4a675p4a03fmy7wx9-awscli2-2.33.2"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/qwl18in1xxa7l31wzq4vl1qd45jgrkm8-awscli2-2.33.2",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/z8id4ydz5b8gnqkx2jddx5hpc91k58rq-awscli2-2.33.2-dist"
+            }
+          ],
+          "store_path": "/nix/store/qwl18in1xxa7l31wzq4vl1qd45jgrkm8-awscli2-2.33.2"
+        }
+      }
+    },
     "direnv@latest": {
       "last_modified": "2026-01-23T17:20:52Z",
       "resolved": "github:NixOS/nixpkgs/a1bab9e494f5f4939442a57a58d0449a109593fe#direnv",
@@ -116,6 +180,70 @@
     "github:NixOS/nixpkgs/nixpkgs-unstable": {
       "last_modified": "2026-02-03T08:29:05Z",
       "resolved": "github:NixOS/nixpkgs/4533d9293756b63904b7238acb84ac8fe4c8c2c4?lastModified=1770107345"
+    },
+    "localstack@latest": {
+      "last_modified": "2026-01-27T15:18:14Z",
+      "resolved": "github:NixOS/nixpkgs/afce96367b2e37fc29afb5543573cd49db3357b7#localstack",
+      "source": "devbox-search",
+      "version": "4.12.0",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/nn34czi3ry6zkkd544wnkbjd5yxfq85q-localstack-4.12.0",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/vv83fwbd52cza8m3bh1zssqga815s48z-localstack-4.12.0-dist"
+            }
+          ],
+          "store_path": "/nix/store/nn34czi3ry6zkkd544wnkbjd5yxfq85q-localstack-4.12.0"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/4v7lc6hzcxjny0avlc51k8gjzdwazvbc-localstack-4.12.0",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/wdzkjs3m8jjp2vk39nl93k309yaiwazz-localstack-4.12.0-dist"
+            }
+          ],
+          "store_path": "/nix/store/4v7lc6hzcxjny0avlc51k8gjzdwazvbc-localstack-4.12.0"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/ak2drhdvimvq26kq9v192dbq8d35gxmy-localstack-4.12.0",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/0r2hia7hr8w5aq7xa3k1pmp5iddyqpzs-localstack-4.12.0-dist"
+            }
+          ],
+          "store_path": "/nix/store/ak2drhdvimvq26kq9v192dbq8d35gxmy-localstack-4.12.0"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/s1c0ba2sxxayszzabjwsjdacnpyxn010-localstack-4.12.0",
+              "default": true
+            },
+            {
+              "name": "dist",
+              "path": "/nix/store/6mpm4a9v40x93577ag638fcsmcycg1kn-localstack-4.12.0-dist"
+            }
+          ],
+          "store_path": "/nix/store/s1c0ba2sxxayszzabjwsjdacnpyxn010-localstack-4.12.0"
+        }
+      }
     },
     "nodejs@22": {
       "last_modified": "2026-01-23T17:20:52Z",

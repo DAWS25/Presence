@@ -46,6 +46,12 @@ newgrp docker
 
 fi
 
+# Python tools setup
+echo "Starting python .venv"
+python -m venv .venv
+source .venv/bin/activate
+pip install awscli awscli-local
+pip install -r presence_sam/presence_sam/requirements.txt
 
 #
 popd

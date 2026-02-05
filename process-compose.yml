@@ -1,5 +1,9 @@
 version: "0.5"
 
 processes:
-  web:
+  0-localstack:
+    command: ./scripts/dev-localstack-start.sh 
+  1-sam:
+    command: ./scripts/dev-sam-start.sh
+  1-web:
     command: ./scripts/dev-web-start.sh

@@ -41,17 +41,19 @@ touch .envrc
 direnv allow .
 # 
 
-# Python setup
-# if apt
+# Python and NodeJS setup
 if [ "$PKG_MANAGER" = "apt-get" ]; then
-    echo "Installing Python 3 and pip using apt-get."    
+    echo "Installing Python and Node apt-get."    
     ${PKG_INSTALL_CMD} python3-full python3-pip nodejs npm
-    # Install livereload for web development
-    pip3 install livereload --break-system-packages
 elif [ "$PKG_MANAGER" = "yum" ]; then
-    echo "Installing Python 3 and pip using yum."
+    echo "Installing Python and Node using yum."
     ${PKG_INSTALL_CMD} python3 python3-pip nodejs npm
-    # Install livereload for web development
+fi
+
+# Livereload setup
+if ! command -v livereload &> /dev/null
+then
+    echo "livereload could not be found, installing..."
     pip3 install livereload --break-system-packages
 fi
 
