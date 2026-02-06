@@ -23,4 +23,18 @@ cp -a $WEB_DIR/src/* $WEB_DIR/target/
 # Copy node_modules to target (required for Bootstrap and face-api.js)
 cp -a $WEB_DIR/node_modules $WEB_DIR/target/
 
+# Build SAM application
+echo "📦 Building SAM application..."
+pushd "$DIR/presence_sam"
+TEMPLATE_PATH="$DIR/presence_sam/template.yaml"
+if command -v sam >/dev/null 2>&1; then
+  sam build --parameter-overrides "LambdaArchitecture=x86_64" --template "$TEMPLATE_PATH"
+elif command -v devbox >/dev/null 2>&1; then
+  cd "$DIR/presence_sam" && devbox run -- sam build --parameter-overrides "LambdaArchitecture=x86_64" --template "$TEMPLATE_PATH"
+else
+  echo "Error: sam not found. Install AWS SAM CLI or use devbox." >&2
+  exit 1
+fi
+popd
+
 echo "Done"

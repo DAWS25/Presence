@@ -35,15 +35,19 @@ class RequestHandler(BaseHTTPRequestHandler):
     
     def handle_request(self):
         """Handle all requests - return 401 for /user/ paths, 200 otherwise"""
+        # Get the original URI from nginx auth_request
+        original_uri = self.headers.get('X-Original-URI', self.path)
+        
         # Log request line
         logging.info(f"{self.command} {self.path} {self.request_version}")
+        logging.info(f"  Original-URI: {original_uri}")
         
         # Log headers
         for header, value in self.headers.items():
             logging.info(f"  {header}: {value}")
         
-        # Determine response code
-        if "/user/" in self.path:
+        # Determine response code based on original URI
+        if "/user/" in original_uri:
             status_code = 401
         else:
             status_code = 200

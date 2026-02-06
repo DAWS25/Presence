@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-set -e
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 pushd "$DIR/.."
 echo "script [$0] started"
 #
+
+rm devbox.log || true
 
 # Node setup
 if ! command -v node &> /dev/null; then
@@ -50,8 +51,10 @@ fi
 echo "Starting python .venv"
 python -m venv .venv
 source .venv/bin/activate
-pip install awscli awscli-local
-pip install -r presence_sam/presence_sam/requirements.txt
+echo "Installing python-based tools"
+pip install awscli awscli-local >> devbox.log 2>&1
+echo "Installing python dependencies for presence_sam"
+pip install -r presence_sam/presence_sam/requirements.txt >> devbox.log 2>&1
 
 #
 popd

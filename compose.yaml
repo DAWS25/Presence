@@ -8,6 +8,8 @@ services:
     volumes:
       - ${PWD}/presence_web/target:/usr/share/nginx/html:ro,z
       - ${PWD}/presence_proxy/nginx.conf:/etc/nginx/conf.d/nginx.conf:ro,z
+      - ${PWD}/presence_proxy/400.html:/etc/nginx/errors/400.html:ro,z
+      - ${PWD}/presence_proxy/401.html:/etc/nginx/errors/401.html:ro,z
       - ${PWD}/presence_cert:/etc/ssl/localcerts:ro,z
     ports:
       - 10443:10443

@@ -10,6 +10,14 @@ Globals:
     Timeout: 15
     MemorySize: 128
 
+Parameters:
+  LambdaArchitecture:
+    Type: String
+    Default: x86_64
+    AllowedValues:
+      - arm64
+      - x86_64
+
 Resources:
   PresenceFunction:
     Type: AWS::Serverless::Function 
@@ -18,12 +26,12 @@ Resources:
       Handler: app.handler
       Runtime: python3.12
       Architectures:
-        - arm64
+        - !Ref LambdaArchitecture
       Events:
         PresenceApi:
           Type: HttpApi
           Properties:
-            Path: "{proxy+}"
+            Path: "/{proxy+}"
             Method: "ANY"
 
 Outputs:

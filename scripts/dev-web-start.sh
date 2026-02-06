@@ -59,7 +59,7 @@ def rebuild():
 server.watch('$WEB_DIR/src/**/*', rebuild)
 
 # Start server
-print('🌐 Server running at http://localhost:8080/')
+print('🌐 Server running at http://localhost:10932/')
 print('👀 Monitoring changes in $WEB_DIR/src...')
-server.serve(root='$WEB_DIR/target', port=8080, host='0.0.0.0')
+server.serve(root='$WEB_DIR/target', port=10932, host='0.0.0.0')
 EOF

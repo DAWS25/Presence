@@ -5,8 +5,34 @@ DIR="$(dirname "$SCRIPT_DIR")"
 pushd "$DIR"
 # 
 
+# Clean and rebuild SAM application
 pushd "$DIR/presence_sam"
-sam local start-api --host 0.0.0.0 --port 9726
+TEMPLATE_PATH="$DIR/presence_sam/template.yaml"
+
+echo "🧹 Cleaning SAM build artifacts..."
+rm -rf .aws-sam
+
+echo "📦 Building SAM application..."
+if command -v sam >/dev/null 2>&1; then
+    sam build --parameter-overrides "LambdaArchitecture=x86_64" --template "$TEMPLATE_PATH"
+elif command -v devbox >/dev/null 2>&1; then
+    cd "$DIR/presence_sam" && devbox run -- sam build --parameter-overrides "LambdaArchitecture=x86_64" --template "$TEMPLATE_PATH"
+else
+    echo "Error: sam not found. Install AWS SAM CLI or use devbox." >&2
+    exit 1
+fi
+
+# Use the built template so dependencies are included
+BUILT_TEMPLATE="$DIR/presence_sam/.aws-sam/build/template.yaml"
+
+if command -v sam >/dev/null 2>&1; then
+    sam local start-api --host 0.0.0.0 --port 10726 --parameter-overrides "LambdaArchitecture=x86_64" --template "$BUILT_TEMPLATE"
+elif command -v devbox >/dev/null 2>&1; then
+    cd "$DIR/presence_sam" && devbox run -- sam local start-api --host 0.0.0.0 --port 10726 --parameter-overrides "LambdaArchitecture=x86_64" --template "$BUILT_TEMPLATE"
+else
+    echo "Error: sam not found. Install AWS SAM CLI or use devbox." >&2
+    exit 1
+fi
 popd
 
 #

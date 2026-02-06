@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bad Request</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #fff;
+        }
+        .container {
+            text-align: center;
+            padding: 2rem;
+            max-width: 600px;
+        }
+        h1 {
+            font-size: 4rem;
+            margin: 0 0 1rem 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        h2 {
+            font-size: 1.5rem;
+            margin: 0 0 2rem 0;
+            font-weight: 400;
+        }
+        .image-container {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            margin-bottom: 2rem;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            display: block;
+        }
+        .message {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        a {
+            color: #fff;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>❌ 400</h1>
+        <h2>Bad Request</h2>
+        <div class="image-container">
+            <img id="unsplash-image" src="" alt="Confused cute pet" />
+        </div>
+        <div class="message">
+            <p><strong>Oops! Your request doesn't look quite right.</strong></p>
+            <p>The server couldn't understand what you were asking for. Please <a href="/">return to the homepage</a> and try again.</p>
+            <p><small id="unsplash-credit"></small></p>
+        </div>
+    </div>
+    <script>
+        (function () {
+            const accessKey = "YOUR_UNSPLASH_ACCESS_KEY";
+            const imgEl = document.getElementById("unsplash-image");
+            const creditEl = document.getElementById("unsplash-credit");
+
+            if (!accessKey || accessKey === "YOUR_UNSPLASH_ACCESS_KEY") {
+                imgEl.alt = "Unsplash access key missing";
+                creditEl.textContent = "Unsplash access key not configured.";
+                return;
+            }
+
+            const url = "https://api.unsplash.com/photos/random?query=confused%20pet&orientation=landscape&content_filter=high&client_id=" + encodeURIComponent(accessKey);
+
+            fetch(url)
+                .then((res) => res.json())
+                .then((data) => {
+                    if (!data || !data.urls) {
+                        throw new Error("No image returned");
+                    }
+                    imgEl.src = data.urls.regular;
+                    imgEl.alt = data.alt_description || "Confused cute pet";
+
+                    if (data.user && data.links) {
+                        const photoLink = data.links.html + "?utm_source=presence&utm_medium=referral";
+                        const userLink = data.user.links.html + "?utm_source=presence&utm_medium=referral";
+                        creditEl.innerHTML = "Photo by <a href=\"" + userLink + "\" target=\"_blank\" rel=\"noopener\">" + data.user.name + "</a> on <a href=\"" + photoLink + "\" target=\"_blank\" rel=\"noopener\">Unsplash</a>";
+                    }
+                })
+                .catch(() => {
+                    imgEl.alt = "Unable to load Unsplash image";
+                    creditEl.textContent = "Unable to load Unsplash image.";
+                });
+        })();
+    </script>
+</body>
+</html>

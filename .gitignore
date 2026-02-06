@@ -25,3 +25,5 @@ npm-debug.log*
 .venv
 node_modules
 .aws-sam
+*.log
+*.log.*
