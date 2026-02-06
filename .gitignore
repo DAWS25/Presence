@@ -21,6 +21,9 @@ npm-debug.log*
 # Cache
 .cache/
 
+#
+.devbox
+
 .envrc
 .venv
 node_modules

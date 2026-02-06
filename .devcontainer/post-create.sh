@@ -57,6 +57,27 @@ then
     pip3 install livereload --break-system-packages
 fi
 
+# Port redirect: ensure 443 -> 10443 when missing
+# curl -k https://local.env.daws25.com
+if ! command -v iptables &> /dev/null
+then
+    echo "iptables could not be found, installing..."
+    ${PKG_INSTALL_CMD} iptables
+fi
+if command -v iptables &> /dev/null
+then
+    if ! sudo iptables -w -t nat -C PREROUTING -p tcp --dport 443 -j REDIRECT --to-ports 10443 &> /dev/null; then
+        echo "Adding iptables redirect: 443 -> 10443 (PREROUTING)"
+        sudo iptables -w -t nat -A PREROUTING -p tcp --dport 443 -j REDIRECT --to-ports 10443
+    fi
+    if ! sudo iptables -w -t nat -C OUTPUT -d 127.0.0.1/32 -p tcp --dport 443 -j REDIRECT --to-ports 10443 &> /dev/null; then
+        echo "Adding iptables redirect: 443 -> 10443 (OUTPUT localhost)"
+        sudo iptables -w -t nat -A OUTPUT -d 127.0.0.1/32 -p tcp --dport 443 -j REDIRECT --to-ports 10443
+    fi
+else
+    echo "iptables is unavailable; 443 -> 10443 redirect not configured."
+fi
+
 # System Info
 echo "PWD: $(pwd)"
 
