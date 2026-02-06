@@ -2,11 +2,11 @@ services:
   proxy:
     image: nginx:latest
     container_name: proxy
-#    network_mode: host
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
       - ${PWD}/presence_web/target:/usr/share/nginx/html:ro,z
+      - ${PWD}/presence_lib:/usr/share/presence_lib:ro,z
       - ${PWD}/presence_proxy/nginx.conf:/etc/nginx/conf.d/nginx.conf:ro,z
       - ${PWD}/presence_proxy/400.html:/etc/nginx/errors/400.html:ro,z
       - ${PWD}/presence_proxy/401.html:/etc/nginx/errors/401.html:ro,z
