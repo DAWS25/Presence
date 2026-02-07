@@ -19,6 +19,12 @@
     8080, 3000
   ],
 
+  "portsAttributes": {
+    "443": {
+      "visibility": "public"
+    }
+  },
+
   "customizations": {
     "vscode": {
       "extensions": [
