@@ -2,7 +2,7 @@ from mangum import Mangum
 from fastapi import FastAPI
 import importlib
 import pkgutil
-import routes
+from . import routes
 
 app = FastAPI()
 

@@ -12,6 +12,18 @@ TEMPLATE_PATH="$DIR/presence_cform/sam-api.sam.yaml"
 echo "🧹 Cleaning SAM build artifacts..."
 rm -rf .aws-sam
 
+REQ_FILE="$DIR/presence_sam/requirements.txt"
+VENV_DIR="$DIR/presence_sam/.venv"
+if [ -f "$REQ_FILE" ]; then
+    echo "📦 Installing Python requirements..."
+    if [ ! -d "$VENV_DIR" ]; then
+        python3 -m venv "$VENV_DIR"
+    fi
+    "$VENV_DIR/bin/python" -m pip install -r "$REQ_FILE"
+else
+    echo "⚠️  Requirements file not found at $REQ_FILE"
+fi
+
 echo "📦 Building SAM application..."
 if command -v sam >/dev/null 2>&1; then
     sam build --parameter-overrides "LambdaArchitecture=x86_64" --template "$TEMPLATE_PATH"

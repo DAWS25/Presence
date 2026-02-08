@@ -23,7 +23,7 @@ Resources:
     Type: AWS::Serverless::Function 
     Properties:
       CodeUri: ../presence_sam/
-      Handler: app.handler
+      Handler: presence_sam.app.handler
       Runtime: python3.12
       Architectures:
         - !Ref LambdaArchitecture
