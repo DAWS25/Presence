@@ -7,13 +7,15 @@ pushd "$DIR"
 sleep 10
 TIMEOUT=${1:-15}
 
+host="local.env.daws25.com"
+port="10443"
+path="/fn/__hc"
+url="https://${host}:${port}${path}"
+
+echo "Checking health of $url"
 while true; do
     ts=$(date +"%d/%b/%Y:%H:%M:%S %z")
-    # https://local.env.daws25.com:10443/fn/__hc
-    host="local.env.daws25.com"
-    port="10443"
-    path="/fn/__hc"
-    url="https://${host}:${port}${path}"
+
 
     output=$(curl -sk --max-time "$TIMEOUT" -o /dev/null -w "%{http_code} %{size_download}" "$url")
     curl_exit=$?
@@ -27,12 +29,14 @@ while true; do
 
     if [[ "$status" =~ ^[23] ]]; then
         emoji="✅"
+        sleep_duration=30
     else
         emoji="❌"
+        sleep_duration=10
     fi
 
     printf '%s %s - - [%s] "GET %s HTTP/1.1" %s %s\n' "$emoji" "$host" "$ts" "$path" "$status" "$bytes"
-    sleep 30
+    sleep "$sleep_duration"
 done
 
 #

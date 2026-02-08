@@ -7,6 +7,15 @@ WEB_DIR="$DIR/presence_web"
 
 echo "🚀 Starting Presence development server..."
 
+restart_proxy() {
+    if command -v docker >/dev/null 2>&1; then
+        if docker ps --format '{{.Names}}' | grep -qx 'proxy'; then
+            echo "🔁 Restarting proxy container to refresh mounts..."
+            docker restart proxy
+        fi
+    fi
+}
+
 # Check if node_modules is installed
 if [ ! -d "$WEB_DIR/node_modules" ]; then
     echo "📦 Installing npm dependencies..."
@@ -24,6 +33,8 @@ cp -a $WEB_DIR/src/* $WEB_DIR/target/
 
 # Copy node_modules to target (required for Bootstrap and face-api.js)
 cp -a $WEB_DIR/node_modules $WEB_DIR/target/
+
+restart_proxy
 
 # Iniciar livereload server com suporte a mudanças de arquivo
 python3 - <<EOF
@@ -52,6 +63,8 @@ def rebuild():
         if os.path.exists(node_modules_target):
             shutil.rmtree(node_modules_target)
         shutil.copytree(node_modules_src, node_modules_target)
+
+    os.system("docker restart proxy >/dev/null 2>&1 || true")
     
     print('✅ Files updated!')
 
