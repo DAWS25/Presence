@@ -165,7 +165,7 @@ class PresenceApp {
         if (detections.length === 0) return;
         
         const resized = faceapi.resizeResults(detections, displaySize);
-        faceapi.draw.drawDetections(canvas, resized);
+        faceapi.draw.drawDetections(canvas, resized, { withScore: false });
     }
 
     /**

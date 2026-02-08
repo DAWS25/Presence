@@ -10,8 +10,11 @@ class PresenceHistory {
     constructor(maxSize = 333) {
         this.maxSize = maxSize; // max pessoas
         this.people = new Map(); // key -> person
+        this.events = []; // eventos recentes
+        this.maxEvents = 50;
         this.seq = 0;
         this.tableBody = document.getElementById('presenceBody');
+        this.cardsEl = document.getElementById('presenceCards');
 
         if (window.eventManager && !window.__presenceHistoryListenerAdded) {
             window.eventManager.on('faceDetected', (data) => this.processDetections(data));
@@ -26,6 +29,14 @@ class PresenceHistory {
      */
     processDetections(data) {
         const { boxes = [], snapshot = null, timestamp = new Date().toISOString() } = data || {};
+        this.events.unshift({
+            timestamp,
+            snapshot,
+            faceCount: typeof data?.faceCount === 'number' ? data.faceCount : boxes.length,
+        });
+        if (this.events.length > this.maxEvents) {
+            this.events.length = this.maxEvents;
+        }
         boxes.forEach((box) => this.upsertPerson(box, snapshot, timestamp));
         this.render();
     }
@@ -102,8 +113,14 @@ class PresenceHistory {
      * Render table with one row per person, ordered by latest timestamp.
      */
     render() {
-        if (!this.tableBody) return;
+        if (!this.tableBody && !this.cardsEl) return;
 
+        this.renderTable();
+        this.renderCards();
+    }
+
+    renderTable() {
+        if (!this.tableBody) return;
         const entries = Array.from(this.people.values()).sort((a, b) => b.lastTimestamp.localeCompare(a.lastTimestamp));
         if (entries.length === 0) {
             this.tableBody.innerHTML = '<tr><td colspan="4" class="text-muted">Sem detecções</td></tr>';
@@ -127,6 +144,36 @@ class PresenceHistory {
         }).join('');
 
         this.tableBody.innerHTML = rowsHtml;
+    }
+
+    renderCards() {
+        if (!this.cardsEl) return;
+        if (this.events.length === 0) {
+            this.cardsEl.innerHTML = '<div class="events-empty">Sem deteccoes</div>';
+            return;
+        }
+
+        // Show only latest 3 events
+        const latestEvents = this.events.slice(0, 3);
+        const cardsHtml = latestEvents.map((eventItem) => {
+            const timeStr = new Date(eventItem.timestamp).toLocaleTimeString();
+            const imgHtml = eventItem.snapshot
+                ? `<img src="${eventItem.snapshot}" alt="Face" />`
+                : '<div class="events-empty">Sem imagem</div>';
+
+            return `
+                <div class="event-card">
+                    ${imgHtml}
+                    <div class="event-info">
+                        <div class="event-title">Deteccao</div>
+                        <div class="event-meta">Faces: ${eventItem.faceCount}</div>
+                        <div class="event-meta">Hora: ${timeStr}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        this.cardsEl.innerHTML = cardsHtml;
     }
 }
 
