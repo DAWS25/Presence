@@ -294,9 +294,8 @@ html, body {
 }
 
 .events-panel-primary {
-    flex: 0 1 auto;
-    max-height: 55%;
-    min-height: 200px;
+    flex: 0 0 auto;
+    height: 380px;
 }
 
 .events-panel-secondary {
@@ -367,6 +366,11 @@ html, body {
     gap: 0.75rem;
 }
 
+.settings-panel {
+    flex: 0 0 auto;
+    max-height: fit-content;
+}
+
 .settings-item {
     display: flex;
     justify-content: space-between;
@@ -378,6 +382,11 @@ html, body {
 .settings-item span:last-child {
     color: var(--fg1);
     font-weight: 600;
+}
+
+.share-panel {
+    flex: 0 1 auto;
+    max-height: fit-content;
 }
 
 .share-list {
