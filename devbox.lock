@@ -178,8 +178,8 @@
       }
     },
     "github:NixOS/nixpkgs/nixpkgs-unstable": {
-      "last_modified": "2026-02-03T08:29:05Z",
-      "resolved": "github:NixOS/nixpkgs/4533d9293756b63904b7238acb84ac8fe4c8c2c4?lastModified=1770107345"
+      "last_modified": "2026-02-04T01:49:30Z",
+      "resolved": "github:NixOS/nixpkgs/aa290c9891fa4ebe88f8889e59633d20cc06a5f2?lastModified=1770169770"
     },
     "localstack@latest": {
       "last_modified": "2026-01-27T15:18:14Z",
@@ -376,11 +376,36 @@
     },
     "python312Packages.livereload": {
       "resolved": "github:NixOS/nixpkgs/4533d9293756b63904b7238acb84ac8fe4c8c2c4#python312Packages.livereload",
-      "source": "nixpkg"
+      "source": "nixpkg",
+      "systems": {
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "path": "/nix/store/s3lyfjanakrbv00f5q0vl57zbhirvx35-python3.12-livereload-2.7.1",
+              "default": true
+            }
+          ]
+        }
+      }
     },
     "python312Packages.pip": {
       "resolved": "github:NixOS/nixpkgs/4533d9293756b63904b7238acb84ac8fe4c8c2c4#python312Packages.pip",
-      "source": "nixpkg"
+      "source": "nixpkg",
+      "systems": {
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "path": "/nix/store/hy2s2xmm349jpnqkg6xswl9q7afsm47z-python3.12-pip-25.3",
+              "default": true
+            },
+            {
+              "name": "man",
+              "path": "/nix/store/m7nv3939ndin9252sc23c4ckh8y59f1l-python3.12-pip-25.3-man",
+              "default": true
+            }
+          ]
+        }
+      }
     },
     "python3@3.12": {
       "last_modified": "2025-01-06T03:40:18Z",

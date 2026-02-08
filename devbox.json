@@ -13,11 +13,6 @@
     "uv@latest"
   ],
   "shell": {
-    "init_hook": ["scripts/devbox-init-hook.sh"],
-    "scripts": {
-      "dev":     ["bash scripts/dev-web-start.sh"],
-      "install": ["cd presence_web && npm install"],
-      "test":    ["echo \"Error: no test specified\" && exit 1"]
-    }
+    "init_hook": ["scripts/devbox-init-hook.sh"]
   }
 }

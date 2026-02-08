@@ -1,0 +1,46 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  presence_sam
+
+  Sample SAM Template for presence_sam
+
+Globals:
+  Function:
+    Timeout: 15
+    MemorySize: 128
+
+Parameters:
+  LambdaArchitecture:
+    Type: String
+    Default: x86_64
+    AllowedValues:
+      - arm64
+      - x86_64
+
+Resources:
+  PresenceFunction:
+    Type: AWS::Serverless::Function 
+    Properties:
+      CodeUri: ../presence_sam/
+      Handler: app.handler
+      Runtime: python3.12
+      Architectures:
+        - !Ref LambdaArchitecture
+      Events:
+        PresenceApi:
+          Type: HttpApi
+          Properties:
+            Path: "/{proxy+}"
+            Method: "ANY"
+
+Outputs:
+  PresenceApi:
+    Description: "API Gateway endpoint URL for Presence function"
+    Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/"
+  PresenceFunction:
+    Description: "Hello World Lambda Function ARN"
+    Value: !GetAtt PresenceFunction.Arn
+  PresenceFunctionIamRole:
+    Description: "Implicit IAM Role created for Hello World function"
+    Value: !GetAtt PresenceFunctionRole.Arn
