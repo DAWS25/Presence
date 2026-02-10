@@ -18,7 +18,7 @@ Parameters:
     Default: postgres
     Description: Master username for the database
     AllowedPattern: ^[a-zA-Z][a-zA-Z0-9_]*$
-
+ 
   MasterUserPassword:
     Type: String
     NoEcho: true
@@ -68,6 +68,7 @@ Resources:
         - IpProtocol: tcp
           FromPort: 5432
           ToPort: 5432
+          # TODO: Restrict access to specific IPs or security groups instead of allowing all
           CidrIp: 0.0.0.0/0
           Description: PostgreSQL access
       Tags:

@@ -77,9 +77,7 @@
                             <div class="events-header" data-i18n="share.title">Compartilhar</div>
                             <div class="share-list">
                                 <a class="share-plid" id="sharePlid" href="#"></a>
-                                <a id="shareQrLink" href="#">
-                                    <img class="share-qr" id="shareQr" src="imgs/qr-code-sample.png" alt="QR code" />
-                                </a>
+                                <div id="shareQr" class="share-qr"></div>
                             </div>
                         </section>
                     </aside>
@@ -190,7 +188,7 @@
     <script src="presence.js"></script>
 
     <!-- QR code generator -->
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4"></script>
+    <script src="js/qrcode.min.js"></script>
 
     <!-- Display Place ID -->
     <script src="js/presence_ui/app_init.js"></script>

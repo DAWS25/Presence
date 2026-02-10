@@ -390,11 +390,20 @@ html, body {
 .share-qr {
     width: 120px;
     height: 120px;
-    object-fit: contain;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border-radius: 12px;
     border: 1px solid rgba(255, 242, 218, 0.12);
     background: rgba(50, 48, 47, 0.5);
-    padding: 0.5rem;
+    padding: 4px;
+}
+
+.share-qr img,
+.share-qr canvas {
+    max-width: 100%;
+    max-height: 100%;
+    display: block;
 }
 
 @media (max-width: 768px) {

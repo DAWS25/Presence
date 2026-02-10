@@ -10,8 +10,7 @@
     "localstack@latest",
     "awscli2@latest",
     "mkcert@latest",
-    "uv@latest",
-    "terraform@latest"
+    "uv@latest"
   ],
   "shell": {
     "init_hook": ["scripts/devbox-init-hook.sh"]
