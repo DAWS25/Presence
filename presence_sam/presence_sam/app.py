@@ -2,6 +2,8 @@ from mangum import Mangum
 from fastapi import FastAPI
 import importlib
 import pkgutil
+<<<<<<< HEAD
+=======
 import os
 import logging
 from datetime import datetime
@@ -18,6 +20,7 @@ COMMIT_SHA = os.getenv("GIT_COMMIT", "unknown")
 logger.info(f"🚀 Presence Lambda initializing - Version: {VERSION}, Commit: {COMMIT_SHA}")
 
 app = FastAPI(title="Presence API", version=VERSION)
+ion=VERSION)
 
 
 def include_discovered_routers(application: FastAPI) -> None:

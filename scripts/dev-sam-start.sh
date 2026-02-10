@@ -7,7 +7,7 @@ pushd "$DIR"
 
 # Clean and rebuild SAM application
 pushd "$DIR/presence_sam"
-TEMPLATE_PATH="$DIR/presence_cform/sam-api.sam.yaml"
+TEMPLATE_PATH="$DIR/presence_sam/template.yaml"
 
 echo "🧹 Cleaning SAM build artifacts..."
 rm -rf .aws-sam
