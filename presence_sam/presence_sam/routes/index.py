@@ -19,7 +19,7 @@ def get():
     """
     id = generate_human_id()
     logger.info(f"🆔 Generated Place ID: {id}")
-    response = RedirectResponse(url=f"/place/{id}")
+    response = RedirectResponse(url=f"/fn/place/{id}")
     response.headers["X-Place-ID"] = id
     return response
 

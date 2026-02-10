@@ -76,8 +76,10 @@
                         <section class="events-panel events-panel-secondary share-panel" aria-label="Compartilhar">
                             <div class="events-header" data-i18n="share.title">Compartilhar</div>
                             <div class="share-list">
-                                <div class="share-plid" id="sharePlid"></div>
-                                <img class="share-qr" src="imgs/qr-code-sample.png" alt="QR code" />
+                                <a class="share-plid" id="sharePlid" href="#"></a>
+                                <a id="shareQrLink" href="#">
+                                    <img class="share-qr" id="shareQr" src="imgs/qr-code-sample.png" alt="QR code" />
+                                </a>
                             </div>
                         </section>
                     </aside>
@@ -187,15 +189,10 @@
     <!-- Presence JS -->
     <script src="presence.js"></script>
 
+    <!-- QR code generator -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4"></script>
+
     <!-- Display Place ID -->
-    <script>
-        // Extract and display plid from URL query parameter
-        const urlParams = new URLSearchParams(window.location.search);
-        const plid = urlParams.get('plid');
-        const plidEl = document.getElementById('sharePlid');
-        if (plidEl && plid) {
-            plidEl.textContent = plid;
-        }
-    </script>
+    <script src="js/presence_ui/app_init.js"></script>
 </body>
 </html>
