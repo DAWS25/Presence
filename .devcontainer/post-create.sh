@@ -48,6 +48,14 @@ if [ "$PKG_MANAGER" = "apt-get" ]; then
 elif [ "$PKG_MANAGER" = "yum" ]; then
     echo "Installing Python and Node using yum."
     ${PKG_INSTALL_CMD} python3 python3-pip nodejs npm
+    
+    # Install Terraform from HashiCorp repository for yum-based systems
+    if ! command -v terraform &> /dev/null; then
+        echo "Installing Terraform..."
+        sudo yum install -y yum-utils
+        sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
+        ${PKG_INSTALL_CMD} terraform
+    fi
 fi
 
 # Livereload setup
