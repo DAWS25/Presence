@@ -11,6 +11,11 @@ Globals:
     MemorySize: 128
 
 Parameters:
+  EnvId:
+    Type: String
+    Default: project
+    Description: Environment identifier used to prefix exported outputs.
+
   LambdaArchitecture:
     Type: String
     Default: x86_64
@@ -22,8 +27,8 @@ Resources:
   PresenceFunction:
     Type: AWS::Serverless::Function 
     Properties:
-      CodeUri: ../presence_sam/
-      Handler: presence_sam.app.handler
+      CodeUri: presence_sam
+      Handler: app.handler
       Runtime: python3.12
       Architectures:
         - !Ref LambdaArchitecture
@@ -35,9 +40,16 @@ Resources:
             Method: "ANY"
 
 Outputs:
+  PresenceAPIHost:
+    Description: "API Gateway host name for Presence function"
+    Value: !Sub "${ServerlessHttpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}"
+    Export:
+      Name: !Sub "${EnvId}-PresenceAPIHost"
   PresenceApi:
     Description: "API Gateway endpoint URL for Presence function"
     Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/"
+    Export:
+      Name: !Sub "${EnvId}-PresenceApiEndpoint"
   PresenceFunction:
     Description: "Hello World Lambda Function ARN"
     Value: !GetAtt PresenceFunction.Arn

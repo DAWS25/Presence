@@ -20,6 +20,10 @@ Parameters:
     Description: Custom domain name for the CloudFront distribution (e.g., www.example.com)
     AllowedPattern: ^[a-zA-Z0-9][a-zA-Z0-9-_.]*[a-zA-Z0-9]$
 
+  CertificateArn:
+    Type: String
+    Description: ARN of the ACM certificate for HTTPS
+
 Resources:
   # S3 Bucket for static files
   DistributionBucket:
@@ -64,6 +68,29 @@ Resources:
             QueryString: false
             Cookies:
               Forward: none
+        CacheBehaviors:
+          - PathPattern: "/fn/*"
+            TargetOriginId: ApiOrigin
+            ViewerProtocolPolicy: https-only
+            AllowedMethods:
+              - GET
+              - HEAD
+              - OPTIONS
+              - PUT
+              - POST
+              - PATCH
+              - DELETE
+            CachedMethods:
+              - GET
+              - HEAD
+            Compress: false
+            ForwardedValues:
+              QueryString: true
+              Headers:
+                - Authorization
+                - Content-Type
+              Cookies:
+                Forward: all
         DefaultRootObject: index.html
         Enabled: true
         Origins:
@@ -73,9 +100,18 @@ Resources:
             OriginAccessControlId: !Ref OriginAccessControl
             S3OriginConfig:
               OriginAccessIdentity: ""
+          - Id: ApiOrigin
+            DomainName: 
+              Fn::ImportValue: 
+                !Sub "${EnvId}-PresenceAPIHost"
+            CustomOriginConfig:
+              OriginProtocolPolicy: https-only
+              OriginSSLProtocols:
+                - TLSv1.2
+              OriginReadTimeout: 30
+              OriginKeepaliveTimeout: 5
         ViewerCertificate:
-          AcmCertificateArn:
-            Fn::ImportValue: !Sub "${EnvId}-CertificateArn"
+          AcmCertificateArn: !Ref CertificateArn
           SslSupportMethod: sni-only
 
   # Bucket Policy to allow CloudFront access via OAC

@@ -1,0 +1,161 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Aurora Serverless v3 PostgreSQL database cluster
+
+Parameters:
+  EnvId:
+    Type: String
+    Default: project
+    Description: Environment identifier used to prefix exported outputs.
+
+  DatabaseName:
+    Type: String
+    Default: presence
+    Description: Name of the initial database to create
+    AllowedPattern: ^[a-zA-Z][a-zA-Z0-9_]*$
+
+  MasterUsername:
+    Type: String
+    Default: postgres
+    Description: Master username for the database
+    AllowedPattern: ^[a-zA-Z][a-zA-Z0-9_]*$
+
+  MasterUserPassword:
+    Type: String
+    NoEcho: true
+    Description: Master password for the database (min 8 characters)
+    MinLength: 8
+
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: VPC ID where the database will be deployed
+
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: List of subnet IDs for the database (minimum 2 in different AZs)
+
+  MinCapacity:
+    Type: Number
+    Default: 0.0
+    Description: Minimum Aurora Capacity Units (ACUs) - 0.5, 1, 2, 4, 8, 16, 32, 64, 128, 192, 256, 384
+    AllowedValues: [0.0,0.5, 1, 2, 4, 8, 16, 32, 64, 128, 192, 256, 384]
+
+  MaxCapacity:
+    Type: Number
+    Default: 4
+    Description: Maximum Aurora Capacity Units (ACUs) - 0.5, 1, 2, 4, 8, 16, 32, 64, 128, 192, 256, 384
+    AllowedValues: [0.5, 1, 2, 4, 8, 16, 32, 64, 128, 192, 256, 384]
+
+Resources:
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupName: !Sub "${EnvId}-db-subnet-group"
+      DBSubnetGroupDescription: !Sub "Subnet group for ${EnvId} Aurora cluster"
+      SubnetIds: !Ref SubnetIds
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvId}-db-subnet-group"
+        - Key: Environment
+          Value: !Ref EnvId
+
+  DBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub "${EnvId}-db-security-group"
+      GroupDescription: !Sub "Security group for ${EnvId} Aurora cluster"
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: 0.0.0.0/0
+          Description: PostgreSQL access
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvId}-db-security-group"
+        - Key: Environment
+          Value: !Ref EnvId
+
+  DBCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      DBClusterIdentifier: !Sub "${EnvId}-db-cluster"
+      Engine: aurora-postgresql
+      EngineMode: provisioned
+      EngineVersion: "15.4"
+      DatabaseName: !Ref DatabaseName
+      MasterUsername: !Ref MasterUsername
+      MasterUserPassword: !Ref MasterUserPassword
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      VpcSecurityGroupIds:
+        - !Ref DBSecurityGroup
+      ServerlessV2ScalingConfiguration:
+        MinCapacity: !Ref MinCapacity
+        MaxCapacity: !Ref MaxCapacity
+      BackupRetentionPeriod: 7
+      PreferredBackupWindow: "03:00-04:00"
+      PreferredMaintenanceWindow: "mon:04:00-mon:05:00"
+      EnableHttpEndpoint: true
+      StorageEncrypted: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvId}-db-cluster"
+        - Key: Environment
+          Value: !Ref EnvId
+
+  DBInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceIdentifier: !Sub "${EnvId}-db-instance"
+      DBClusterIdentifier: !Ref DBCluster
+      DBInstanceClass: db.serverless
+      Engine: aurora-postgresql
+      PubliclyAccessible: false
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvId}-db-instance"
+        - Key: Environment
+          Value: !Ref EnvId
+
+Outputs:
+  DBClusterEndpoint:
+    Description: Aurora cluster endpoint
+    Value: !GetAtt DBCluster.Endpoint.Address
+    Export:
+      Name: !Sub "${EnvId}-DBClusterEndpoint"
+
+  DBClusterReadEndpoint:
+    Description: Aurora cluster read endpoint
+    Value: !GetAtt DBCluster.ReadEndpoint.Address
+    Export:
+      Name: !Sub "${EnvId}-DBClusterReadEndpoint"
+
+  DBClusterPort:
+    Description: Aurora cluster port
+    Value: !GetAtt DBCluster.Endpoint.Port
+    Export:
+      Name: !Sub "${EnvId}-DBClusterPort"
+
+  DBClusterIdentifier:
+    Description: Aurora cluster identifier
+    Value: !Ref DBCluster
+    Export:
+      Name: !Sub "${EnvId}-DBClusterIdentifier"
+
+  DatabaseName:
+    Description: Database name
+    Value: !Ref DatabaseName
+    Export:
+      Name: !Sub "${EnvId}-DatabaseName"
+
+  DBSecurityGroupId:
+    Description: Security group ID for database access
+    Value: !Ref DBSecurityGroup
+    Export:
+      Name: !Sub "${EnvId}-DBSecurityGroupId"
+
+  ConnectionString:
+    Description: PostgreSQL connection string (password not included)
+    Value: !Sub "postgresql://${MasterUsername}@${DBCluster.Endpoint.Address}:${DBCluster.Endpoint.Port}/${DatabaseName}"
+    Export:
+      Name: !Sub "${EnvId}-DBConnectionString"

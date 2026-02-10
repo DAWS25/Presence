@@ -23,4 +23,8 @@ cp -a $WEB_DIR/src/* $WEB_DIR/target/
 # Copy node_modules to target (required for Bootstrap and face-api.js)
 cp -a $WEB_DIR/node_modules $WEB_DIR/target/
 
+echo "🔧 Building SAM API function..."
+pushd $DIR/presence_sam
+sam build --use-container 
+popd
 echo "Done"
