@@ -23,15 +23,29 @@ Parameters:
       - arm64
       - x86_64
 
+  AppVersion:
+    Type: String
+    Default: dev
+    Description: Application version or build timestamp
+
+  GitCommit:
+    Type: String
+    Default: unknown
+    Description: Git commit SHA
+
 Resources:
   PresenceFunction:
     Type: AWS::Serverless::Function 
     Properties:
-      CodeUri: presence_sam
-      Handler: app.handler
+      CodeUri: .
+      Handler: presence_sam.app.handler
       Runtime: python3.12
       Architectures:
         - !Ref LambdaArchitecture
+      Environment:
+        Variables:
+          APP_VERSION: !Ref AppVersion
+          GIT_COMMIT: !Ref GitCommit
       Events:
         PresenceApi:
           Type: HttpApi

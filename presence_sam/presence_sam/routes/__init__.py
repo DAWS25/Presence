@@ -13,5 +13,6 @@ __all__ = [
     "user_data",
     "whoami",
     "healthcheck",
+    "version",
     "root",
 ]

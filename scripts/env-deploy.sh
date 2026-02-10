@@ -89,10 +89,26 @@ aws s3 sync $DIR/presence_web/target/ s3://$BUCKET_NAME/ --delete
 
 # Deploy SAM API function
 echo "Deploying SAM API function..."
+SAM_BUILD_TEMPLATE="$DIR/presence_sam/.aws-sam/build/template.yaml"
+if [ ! -f "$SAM_BUILD_TEMPLATE" ]; then
+    echo "❌ SAM build output not found: $SAM_BUILD_TEMPLATE"
+    echo "   Run $SCRIPT_DIR/env-build.sh first to generate build artifacts."
+    exit 1
+fi
+
+# Capture version information
+APP_VERSION=$(date -u +"%Y%m%d-%H%M%S")
+GIT_COMMIT=$(git -C "$DIR" rev-parse --short HEAD 2>/dev/null || echo "unknown")
+
+echo "📦 Deploying version: $APP_VERSION (commit: $GIT_COMMIT)"
+
 pushd $DIR/presence_sam
 sam deploy \
     --stack-name $ENV_ID-presence-api \
-    --parameter-overrides EnvId=$ENV_ID \
+    --parameter-overrides \
+        EnvId=$ENV_ID \
+        AppVersion=$APP_VERSION \
+        GitCommit=$GIT_COMMIT \
     --capabilities CAPABILITY_IAM \
     --no-fail-on-empty-changeset \
     --no-confirm-changeset 
