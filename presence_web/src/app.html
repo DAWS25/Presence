@@ -73,26 +73,10 @@
                                 <div class="events-empty" data-i18n="events.empty">Sem deteccoes</div>
                             </div>
                         </section>
-                        <section class="events-panel events-panel-secondary settings-panel" aria-label="Configuracoes">
-                            <div class="events-header" data-i18n="nav.config">Configuracoes</div>
-                            <div class="settings-list">
-                                <div class="settings-item">
-                                    <span data-i18n="config.minConfidence">Confianca minima</span>
-                                    <span id="confidenceValue">50%</span>
-                                </div>
-                                <div class="settings-item">
-                                    <span data-i18n="config.interval">Intervalo de deteccao (ms)</span>
-                                    <span id="detectionIntervalValue">500</span>
-                                </div>
-                                <div class="settings-item">
-                                    <span data-i18n="config.enableLogging">Ativar logging</span>
-                                    <span id="enableLoggingValue">Off</span>
-                                </div>
-                            </div>
-                        </section>
                         <section class="events-panel events-panel-secondary share-panel" aria-label="Compartilhar">
                             <div class="events-header" data-i18n="share.title">Compartilhar</div>
                             <div class="share-list">
+                                <div class="share-plid" id="sharePlid"></div>
                                 <img class="share-qr" src="imgs/qr-code-sample.png" alt="QR code" />
                             </div>
                         </section>
@@ -202,5 +186,16 @@
 
     <!-- Presence JS -->
     <script src="presence.js"></script>
+
+    <!-- Display Place ID -->
+    <script>
+        // Extract and display plid from URL query parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const plid = urlParams.get('plid');
+        const plidEl = document.getElementById('sharePlid');
+        if (plidEl && plid) {
+            plidEl.textContent = plid;
+        }
+    </script>
 </body>
 </html>

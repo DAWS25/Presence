@@ -64,9 +64,6 @@ Outputs:
     Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/"
     Export:
       Name: !Sub "${EnvId}-PresenceApiEndpoint"
-ix}/"
-    Export:
-      Name: !Sub "${EnvId}-PresenceApiEndpoint"
   PresenceFunction:
     Description: "Hello World Lambda Function ARN"
     Value: !GetAtt PresenceFunction.Arn

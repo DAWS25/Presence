@@ -360,30 +360,6 @@ html, body {
     color: var(--gray);
 }
 
-.settings-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-
-.settings-panel {
-    flex: 0 0 auto;
-    max-height: fit-content;
-}
-
-.settings-item {
-    display: flex;
-    justify-content: space-between;
-    gap: 0.75rem;
-    font-size: 0.85rem;
-    color: var(--fg);
-}
-
-.settings-item span:last-child {
-    color: var(--fg1);
-    font-weight: 600;
-}
-
 .share-panel {
     flex: 0 1 auto;
     max-height: fit-content;
@@ -394,6 +370,19 @@ html, body {
     flex-direction: column;
     gap: 0.75rem;
     align-items: center;
+}
+
+.share-plid {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--fg);
+    text-align: center;
+    padding: 0.5rem 1rem;
+    background: rgba(50, 48, 47, 0.5);
+    border: 1px solid rgba(255, 242, 218, 0.12);
+    border-radius: 8px;
+    letter-spacing: 0.05em;
 }
 
 .share-qr {
