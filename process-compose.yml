@@ -3,11 +3,13 @@ version: "0.5"
 processes:
   0-healthcheck:
     command: ./scripts/dev-healthcheck-start.sh
-  1-auth:
-    command: ./scripts/dev-auth-start.sh
   1-sam:
     command: ./scripts/dev-sam-start.sh
   1-web:
     command: ./scripts/dev-web-start.sh
-  2-proxy:
+  2-auth:
+    command: ./scripts/dev-auth-start.sh
+  3-db:
+    command: ./scripts/dev-db-start.sh
+  3-proxy:
     command: ./scripts/dev-proxy-start.sh

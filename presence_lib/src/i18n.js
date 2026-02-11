@@ -24,7 +24,11 @@
             "config.enableLogging": "Ativar logging",
             "about.title": "Sobre",
             "about.version": "Versao:",
-            "about.status": "Status:"
+            "about.status": "Status:",
+            "init.welcome.title": "Bem-vindo",
+            "init.welcome.message": "Inicializando aplicacao...",
+            "init.faceapi.title": "Face-API Carregado",
+            "init.faceapi.message": "Deteccao de rostos pronta"
         },
         "en-US": {
             "app.title": "Presence - DAWS25",
@@ -50,7 +54,11 @@
             "config.enableLogging": "Enable logging",
             "about.title": "About",
             "about.version": "Version:",
-            "about.status": "Status:"
+            "about.status": "Status:",
+            "init.welcome.title": "Welcome",
+            "init.welcome.message": "Initializing application...",
+            "init.faceapi.title": "Face-API Loaded",
+            "init.faceapi.message": "Face detection ready"
         }
     };
 
@@ -76,6 +84,16 @@
             }
         });
     }
+
+    // Expose translation function for use in JavaScript code
+    window.i18n = {
+        t: function(key) {
+            const locale = resolveLocale();
+            const dict = translations[locale] || translations[fallbackLocale];
+            return dict[key] || key;
+        },
+        locale: resolveLocale
+    };
 
     applyTranslations(resolveLocale());
 })();

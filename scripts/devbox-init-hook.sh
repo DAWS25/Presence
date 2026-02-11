@@ -4,7 +4,7 @@ pushd "$DIR/.."
 echo "script [$0] started"
 #
 
-rm devbox.log || true
+rm -f devbox.log || true
 
 # Node setup
 if ! command -v node &> /dev/null; then
@@ -52,9 +52,17 @@ echo "Starting python .venv"
 python -m venv .venv
 source .venv/bin/activate
 echo "Installing python-based tools"
-pip install awscli awscli-local >> devbox.log 2>&1
+if ! pip show awscli &> /dev/null; then
+  pip install awscli awscli-local >> devbox.log 2>&1
+else
+  echo "awscli already installed, skipping"
+fi
 echo "Installing python dependencies for presence_sam"
-pip install -r presence_sam/presence_sam/requirements.txt >> devbox.log 2>&1
+if ! pip show fastapi &> /dev/null; then
+  pip install -r presence_sam/presence_sam/requirements.txt >> devbox.log 2>&1
+else
+  echo "presence_sam dependencies already installed, skipping"
+fi
 
 #
 popd

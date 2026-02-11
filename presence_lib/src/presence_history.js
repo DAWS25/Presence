@@ -146,6 +146,25 @@ class PresenceHistory {
         this.tableBody.innerHTML = rowsHtml;
     }
 
+    /**
+     * Add a welcome message to the events panel
+     */
+    addWelcomeMessage(title, message) {
+        const msgEvent = {
+            timestamp: new Date().toISOString(),
+            snapshot: null,
+            faceCount: 0,
+            isWelcome: true,
+            title,
+            message
+        };
+        this.events.unshift(msgEvent);
+        if (this.events.length > this.maxEvents) {
+            this.events.length = this.maxEvents;
+        }
+        this.renderCards();
+    }
+
     renderCards() {
         if (!this.cardsEl) return;
         if (this.events.length === 0) {
@@ -157,6 +176,22 @@ class PresenceHistory {
         const latestEvents = this.events.slice(0, 3);
         const cardsHtml = latestEvents.map((eventItem) => {
             const timeStr = new Date(eventItem.timestamp).toLocaleTimeString();
+            
+            // Render welcome messages differently
+            if (eventItem.isWelcome) {
+                return `
+                    <div class="event-card event-card-welcome">
+                        <div class="event-header">
+                            <div class="event-title">${eventItem.title}</div>
+                            <div class="event-time">${timeStr}</div>
+                        </div>
+                        <div class="event-info">
+                            <div class="event-meta">${eventItem.message}</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
             const imgHtml = eventItem.snapshot
                 ? `<img src="${eventItem.snapshot}" alt="Face" />`
                 : '<div class="events-empty">Sem imagem</div>';
@@ -165,9 +200,11 @@ class PresenceHistory {
                 <div class="event-card">
                     ${imgHtml}
                     <div class="event-info">
-                        <div class="event-title">Deteccao</div>
+                        <div class="event-header">
+                            <div class="event-title">Deteccao</div>
+                            <div class="event-time">${timeStr}</div>
+                        </div>
                         <div class="event-meta">Faces: ${eventItem.faceCount}</div>
-                        <div class="event-meta">Hora: ${timeStr}</div>
                     </div>
                 </div>
             `;

@@ -336,6 +336,10 @@ html, body {
     border: 1px solid rgba(255, 242, 218, 0.08);
 }
 
+.event-card-welcome {
+    grid-template-columns: 1fr;
+}
+
 .event-card img {
     width: 88px;
     height: 66px;
@@ -348,12 +352,25 @@ html, body {
     display: flex;
     flex-direction: column;
     gap: 0.3rem;
-    font-size: 0.85rem;
+    font-size: 0.75rem;
+}
+
+.event-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.5rem;
 }
 
 .event-title {
     font-weight: 600;
     color: var(--fg1);
+}
+
+.event-time {
+    color: var(--gray);
+    font-size: 0.7rem;
+    white-space: nowrap;
 }
 
 .event-meta {

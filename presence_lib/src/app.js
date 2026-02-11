@@ -32,6 +32,14 @@ class PresenceApp {
     async init() {
         console.log('🚀 Inicializando...');
         
+        // Show welcome message as soon as possible
+        if (window.presenceHistory && window.i18n) {
+            window.presenceHistory.addWelcomeMessage(
+                window.i18n.t('init.welcome.title'),
+                window.i18n.t('init.welcome.message')
+            );
+        }
+        
         try {
             if (typeof faceapi === 'undefined') {
                 throw new Error('face-api.js não carregado');
@@ -46,6 +54,14 @@ class PresenceApp {
             
             await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
             console.log('✅ TinyFaceDetector carregado');
+            
+            // Show welcome message when face-api is loaded
+            if (window.presenceHistory && window.i18n) {
+                window.presenceHistory.addWelcomeMessage(
+                    window.i18n.t('init.faceapi.title'),
+                    window.i18n.t('init.faceapi.message')
+                );
+            }
             
             await this.startCamera();
             console.log('✅ Câmera iniciada');

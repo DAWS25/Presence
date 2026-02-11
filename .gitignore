@@ -25,8 +25,15 @@ npm-debug.log*
 .devbox
 
 .envrc
+.env
+
 .venv
+
 node_modules
+
 .aws-sam
+
 *.log
 *.log.*
+
+.data
