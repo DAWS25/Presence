@@ -148,6 +148,12 @@ DISTRIBUTION_URL=$(aws cloudformation describe-stacks \
 echo "⏳ Waiting for CloudFront distribution to be deployed..."
 aws cloudformation wait stack-update-complete --stack-name $ENV_ID-web-distribution 2>/dev/null || true
 
+# Invalidate CloudFront cache to ensure new content is served
+echo "🚀 Invalidating CloudFront cache..."
+aws cloudfront create-invalidation \
+    --distribution-id "$DISTRIBUTION_ID" \
+    --paths "/*" 
+
 MAX_WAIT=600  # 10 minutes
 WAIT_INTERVAL=30
 elapsed=0
