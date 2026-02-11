@@ -57,8 +57,12 @@ class PresenceApp {
             const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
             console.log('📦 Carregando modelos...');
             
-            await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-            console.log('✅ TinyFaceDetector carregado');
+            await Promise.all([
+                faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+                faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+                faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+            ]);
+            console.log('✅ Modelos carregados (detector + landmarks + recognition)');
             
             // Show welcome message when face-api is loaded
             if (window.presenceHistory && window.i18n) {
@@ -129,7 +133,7 @@ class PresenceApp {
             const detections = await faceapi.detectAllFaces(
                 this.videoEl,
                 new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 })
-            );
+            ).withFaceLandmarks().withFaceDescriptors();
             
             if (perfNow - this.lastLogTs > 1000) {
                 console.log('✅ Detecções:', detections.length);
@@ -139,17 +143,18 @@ class PresenceApp {
             
             // Emit event when faces detected (13s cooldown)
             const now = Date.now();
-            const cooldownMs = 13000;
+            const cooldownMs = 5000;
             if (detections.length > 0 && window.eventManager && (now - this.lastEventTs >= cooldownMs)) {
                 const snapshot = this.getSnapshot();
                 const boxes = detections.map(det => {
-                    const box = det.box || (det.detection && det.detection.box);
+                    const box = det.detection.box;
                     return {
                         x: box ? box.x : null,
                         y: box ? box.y : null,
                         width: box ? box.width : null,
                         height: box ? box.height : null,
-                        score: typeof det.score === 'number' ? det.score : (det.detection && det.detection.score) || null
+                        score: det.detection.score || null,
+                        descriptor: det.descriptor ? Array.from(det.descriptor) : null
                     };
                 });
 

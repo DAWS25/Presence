@@ -367,16 +367,13 @@ html, body {
     color: var(--fg1);
 }
 
-.event-title-clickable {
+.event-card-clickable {
     cursor: pointer;
-    text-decoration: underline;
-    text-decoration-color: transparent;
-    transition: text-decoration-color 0.2s ease;
+    transition: border-color 0.2s ease;
 }
 
-.event-title-clickable:hover {
-    text-decoration-color: var(--blue);
-    color: var(--blue);
+.event-card-clickable:hover {
+    border-color: var(--blue);
 }
 
 .event-time {
@@ -450,6 +447,41 @@ html, body {
 
 .event-detail-label {
     color: var(--gray);
+}
+
+.event-detail-input {
+    background: rgba(255, 242, 218, 0.06);
+    border: 1px solid rgba(255, 242, 218, 0.15);
+    color: var(--fg);
+    border-radius: 6px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    font-family: inherit;
+    flex: 1;
+    min-width: 0;
+    margin-left: 0.5rem;
+}
+
+.event-detail-input:focus {
+    outline: none;
+    border-color: var(--aqua);
+}
+
+.event-detail-save {
+    background: var(--aqua);
+    color: var(--bg);
+    border: none;
+    border-radius: 6px;
+    padding: 0.35rem 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    align-self: flex-end;
+    transition: opacity 0.2s ease;
+}
+
+.event-detail-save:hover {
+    opacity: 0.85;
 }
 
 .share-panel {

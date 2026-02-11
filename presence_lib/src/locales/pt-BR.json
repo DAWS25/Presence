@@ -26,7 +26,7 @@
     "init.welcome.title": "Bem-vindo",
     "init.welcome.message": "Inicializando aplicacao...",
     "init.faceapi.title": "Face-API Carregado",
-    "init.faceapi.message": "Deteccao de rostos pronta",
+    "init.faceapi.message": "Deteccao e reconhecimento de rostos prontos",
     "events.detection.title": "Deteccao",
     "events.detection.unknown": "Presenca desconhecida",
     "events.detail.title": "Detalhes do Evento",
@@ -34,5 +34,6 @@
     "events.detail.person": "Pessoa",
     "events.detail.faces": "Faces",
     "events.detail.time": "Hora",
-    "events.detail.date": "Data"
+    "events.detail.date": "Data",
+    "events.detail.save": "Salvar"
 }

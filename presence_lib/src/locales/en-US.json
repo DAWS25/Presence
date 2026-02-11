@@ -26,7 +26,7 @@
     "init.welcome.title": "Welcome",
     "init.welcome.message": "Initializing application...",
     "init.faceapi.title": "Face-API Loaded",
-    "init.faceapi.message": "Face detection ready",
+    "init.faceapi.message": "Face detection and recognition ready",
     "events.detection.title": "Detection",
     "events.detection.unknown": "Unknown presence",
     "events.detail.title": "Event Details",
@@ -34,5 +34,6 @@
     "events.detail.person": "Person",
     "events.detail.faces": "Faces",
     "events.detail.time": "Time",
-    "events.detail.date": "Date"
+    "events.detail.date": "Date",
+    "events.detail.save": "Save"
 }
