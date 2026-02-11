@@ -15,6 +15,7 @@ class PresenceHistory {
         this.seq = 0;
         this.tableBody = document.getElementById('presenceBody');
         this.cardsEl = document.getElementById('presenceCards');
+        this.selectedEvent = null;
 
         if (window.eventManager && !window.__presenceHistoryListenerAdded) {
             window.eventManager.on('faceDetected', (data) => this.processDetections(data));
@@ -167,6 +168,13 @@ class PresenceHistory {
 
     renderCards() {
         if (!this.cardsEl) return;
+
+        // If an event is selected, show detail view
+        if (this.selectedEvent !== null) {
+            this.renderEventDetail(this.selectedEvent);
+            return;
+        }
+
         if (this.events.length === 0) {
             this.cardsEl.innerHTML = '<div class="events-empty">Sem deteccoes</div>';
             return;
@@ -196,14 +204,19 @@ class PresenceHistory {
                 ? `<img src="${eventItem.snapshot}" alt="Face" />`
                 : '<div class="events-empty">Sem imagem</div>';
 
+            const detectionTitle = window.i18n ? window.i18n.t('events.detection.title') : 'Deteccao';
+            const personName = eventItem.personName || (window.i18n ? window.i18n.t('events.detection.unknown') : 'Unknown presence');
+            const eventIndex = this.events.indexOf(eventItem);
+
             return `
                 <div class="event-card">
                     ${imgHtml}
                     <div class="event-info">
                         <div class="event-header">
-                            <div class="event-title">Deteccao</div>
+                            <div class="event-title event-title-clickable" data-event-index="${eventIndex}">${detectionTitle}</div>
                             <div class="event-time">${timeStr}</div>
                         </div>
+                        <div class="event-person">${personName}</div>
                         <div class="event-meta">Faces: ${eventItem.faceCount}</div>
                     </div>
                 </div>
@@ -211,6 +224,72 @@ class PresenceHistory {
         }).join('');
 
         this.cardsEl.innerHTML = cardsHtml;
+
+        // Attach click handlers to detection titles
+        this.cardsEl.querySelectorAll('.event-title-clickable').forEach((el) => {
+            el.addEventListener('click', (e) => {
+                const index = parseInt(e.target.dataset.eventIndex, 10);
+                if (!isNaN(index) && this.events[index]) {
+                    this.selectedEvent = index;
+                    this.renderCards();
+                }
+            });
+        });
+    }
+
+    /**
+     * Render detail view for a selected event
+     */
+    renderEventDetail(index) {
+        if (!this.cardsEl) return;
+        const eventItem = this.events[index];
+        if (!eventItem) {
+            this.selectedEvent = null;
+            this.renderCards();
+            return;
+        }
+
+        const t = (key) => window.i18n ? window.i18n.t(key) : key;
+        const timeStr = new Date(eventItem.timestamp).toLocaleTimeString();
+        const dateStr = new Date(eventItem.timestamp).toLocaleDateString();
+        const personName = eventItem.personName || t('events.detection.unknown');
+
+        const imgHtml = eventItem.snapshot
+            ? `<img class="event-detail-img" src="${eventItem.snapshot}" alt="Face" />`
+            : '';
+
+        this.cardsEl.innerHTML = `
+            <div class="event-detail">
+                <div class="event-detail-header">
+                    <div class="event-title">${t('events.detail.title')}</div>
+                    <button class="event-detail-close" aria-label="${t('events.detail.close')}">&times;</button>
+                </div>
+                ${imgHtml}
+                <div class="event-detail-info">
+                    <div class="event-detail-row">
+                        <span class="event-detail-label">${t('events.detail.person')}</span>
+                        <span class="event-person">${personName}</span>
+                    </div>
+                    <div class="event-detail-row">
+                        <span class="event-detail-label">${t('events.detail.faces')}</span>
+                        <span>${eventItem.faceCount}</span>
+                    </div>
+                    <div class="event-detail-row">
+                        <span class="event-detail-label">${t('events.detail.time')}</span>
+                        <span>${timeStr}</span>
+                    </div>
+                    <div class="event-detail-row">
+                        <span class="event-detail-label">${t('events.detail.date')}</span>
+                        <span>${dateStr}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        this.cardsEl.querySelector('.event-detail-close').addEventListener('click', () => {
+            this.selectedEvent = null;
+            this.renderCards();
+        });
     }
 }
 

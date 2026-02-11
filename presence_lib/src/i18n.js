@@ -1,68 +1,6 @@
 (function () {
-    const translations = {
-        "pt-BR": {
-            "app.title": "Presence - DAWS25",
-            "nav.camera": "Camera",
-            "nav.presenca": "Presenca",
-            "nav.config": "Configuracoes",
-            "hud.title": "Presence",
-            "hud.status.ready": "✓ Pronto",
-            "hud.metrics.faces": "Faces",
-            "hud.metrics.version": "Versao",
-            "hud.metrics.build": "Build",
-            "events.title": "Eventos",
-            "events.empty": "Sem deteccoes",
-            "share.title": "Compartilhar",
-            "share.empty": "Sem opcoes",
-            "table.person": "Pessoa",
-            "table.events": "Eventos",
-            "table.last": "Ultimo",
-            "table.image": "Imagem",
-            "config.title": "Configuracoes da App",
-            "config.minConfidence": "Confianca minima",
-            "config.interval": "Intervalo de deteccao (ms)",
-            "config.enableLogging": "Ativar logging",
-            "about.title": "Sobre",
-            "about.version": "Versao:",
-            "about.status": "Status:",
-            "init.welcome.title": "Bem-vindo",
-            "init.welcome.message": "Inicializando aplicacao...",
-            "init.faceapi.title": "Face-API Carregado",
-            "init.faceapi.message": "Deteccao de rostos pronta"
-        },
-        "en-US": {
-            "app.title": "Presence - DAWS25",
-            "nav.camera": "Camera",
-            "nav.presenca": "Presence",
-            "nav.config": "Settings",
-            "hud.title": "Presence",
-            "hud.status.ready": "✓ Ready",
-            "hud.metrics.faces": "Faces",
-            "hud.metrics.version": "Version",
-            "hud.metrics.build": "Build",
-            "events.title": "Events",
-            "events.empty": "No detections",
-            "share.title": "Share",
-            "share.empty": "No options",
-            "table.person": "Person",
-            "table.events": "Events",
-            "table.last": "Last",
-            "table.image": "Image",
-            "config.title": "App Settings",
-            "config.minConfidence": "Minimum confidence",
-            "config.interval": "Detection interval (ms)",
-            "config.enableLogging": "Enable logging",
-            "about.title": "About",
-            "about.version": "Version:",
-            "about.status": "Status:",
-            "init.welcome.title": "Welcome",
-            "init.welcome.message": "Initializing application...",
-            "init.faceapi.title": "Face-API Loaded",
-            "init.faceapi.message": "Face detection ready"
-        }
-    };
-
     const fallbackLocale = "pt-BR";
+    let dict = {};
 
     function resolveLocale() {
         const params = new URLSearchParams(window.location.search);
@@ -73,10 +11,7 @@
         return fallbackLocale;
     }
 
-    function applyTranslations(locale) {
-        const dict = translations[locale] || translations[fallbackLocale];
-        document.documentElement.lang = locale;
-
+    function applyTranslations() {
         document.querySelectorAll("[data-i18n]").forEach((el) => {
             const key = el.getAttribute("data-i18n");
             if (key && dict[key]) {
@@ -85,15 +20,44 @@
         });
     }
 
-    // Expose translation function for use in JavaScript code
+    // Resolve the base path for locale files relative to i18n.js location
+    function resolveBasePath() {
+        const scripts = document.querySelectorAll('script[src*="i18n.js"]');
+        if (scripts.length > 0) {
+            const src = scripts[scripts.length - 1].getAttribute("src");
+            return src.substring(0, src.lastIndexOf("/") + 1);
+        }
+        return "js/presence_lib/";
+    }
+
+    const locale = resolveLocale();
+    const basePath = resolveBasePath();
+
+    // Load translations from resource file
+    const readyPromise = fetch(basePath + "locales/" + locale + ".json")
+        .then((res) => {
+            if (!res.ok) throw new Error("Failed to load locale: " + locale);
+            return res.json();
+        })
+        .catch((err) => {
+            console.warn("⚠️ i18n: could not load " + locale + ", trying fallback", err);
+            return fetch(basePath + "locales/" + fallbackLocale + ".json").then((r) => r.json());
+        })
+        .then((data) => {
+            dict = data;
+            document.documentElement.lang = locale;
+            applyTranslations();
+        })
+        .catch((err) => {
+            console.error("❌ i18n: failed to load translations", err);
+        });
+
+    // Expose translation API (t() returns key as fallback until loaded)
     window.i18n = {
-        t: function(key) {
-            const locale = resolveLocale();
-            const dict = translations[locale] || translations[fallbackLocale];
+        t: function (key) {
             return dict[key] || key;
         },
-        locale: resolveLocale
+        locale: resolveLocale,
+        ready: readyPromise
     };
-
-    applyTranslations(resolveLocale());
 })();

@@ -32,6 +32,11 @@ class PresenceApp {
     async init() {
         console.log('🚀 Inicializando...');
         
+        // Wait for translations to be loaded
+        if (window.i18n && window.i18n.ready) {
+            await window.i18n.ready;
+        }
+        
         // Show welcome message as soon as possible
         if (window.presenceHistory && window.i18n) {
             window.presenceHistory.addWelcomeMessage(
