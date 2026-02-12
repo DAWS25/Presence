@@ -78,6 +78,7 @@ fi
 
 log_ts "Deploying web-resources stack..."
 aws cloudformation deploy \
+    --stack-name $ENV_ID-web-resources \
     --template-file $DIR/presence_cform/web-resources.cform.yaml \
     --parameter-overrides EnvId="$ENV_ID" \
     --no-fail-on-empty-changeset
@@ -121,6 +122,7 @@ log_ts "✓ SAM API function deployed"
 
 log_ts "Deploying web-distribution stack..."
 aws cloudformation deploy \
+    --stack-name $ENV_ID-web-distribution \
     --template-file $DIR/presence_cform/web-distribution.cform.yaml \
     --parameter-overrides \
         EnvId="$ENV_ID" \
@@ -130,6 +132,7 @@ aws cloudformation deploy \
 
 log_ts "Deploying web-records stack..."
 aws cloudformation deploy \
+    --stack-name $ENV_ID-web-records \
     --template-file $DIR/presence_cform/web-records.cform.yaml \
     --parameter-overrides \
         EnvId="$ENV_ID" \
