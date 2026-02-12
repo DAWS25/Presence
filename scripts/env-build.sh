@@ -16,6 +16,6 @@ cp -a $WEB_DIR/src/* $WEB_DIR/target/
 
 echo "🔧 Building SAM API function..."
 pushd $DIR/presence_sam
-sam build
+sam build --use-container
 popd
 echo "Done"
