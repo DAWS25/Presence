@@ -144,38 +144,42 @@ DISTRIBUTION_URL=$(aws cloudformation describe-stacks \
     --query "Stacks[0].Outputs[?OutputKey=='DistributionDomainName'].OutputValue" \
     --output text)
 
-# Wait for CloudFront distribution to be deployed
-echo "⏳ Waiting for CloudFront distribution to be deployed..."
-aws cloudformation wait stack-update-complete --stack-name $ENV_ID-web-distribution 2>/dev/null || true
-
 # Invalidate CloudFront cache to ensure new content is served
 echo "🚀 Invalidating CloudFront cache..."
 aws cloudfront create-invalidation \
     --distribution-id "$DISTRIBUTION_ID" \
     --paths "/*" 
 
-MAX_WAIT=600  # 10 minutes
-WAIT_INTERVAL=30
-elapsed=0
+if [ "${GITOPS_WAIT_DISTRIBUTION_READY}" = "true" ]; then
+    # Wait for CloudFront distribution to be deployed
+    echo "⏳ Waiting for CloudFront distribution to be deployed..."
+    aws cloudformation wait stack-update-complete --stack-name $ENV_ID-web-distribution 2>/dev/null || true
 
-while [ $elapsed -lt $MAX_WAIT ]; do
-    DIST_STATUS=$(aws cloudfront get-distribution \
-        --id "$DISTRIBUTION_ID" \
-        --query "Distribution.Status" \
-        --output text 2>/dev/null || echo "Unknown")
-    
-    if [ "$DIST_STATUS" = "Deployed" ]; then
-        echo "✓ Distribution is deployed"
-        break
+    MAX_WAIT=600  # 10 minutes
+    WAIT_INTERVAL=30
+    elapsed=0
+
+    while [ $elapsed -lt $MAX_WAIT ]; do
+        DIST_STATUS=$(aws cloudfront get-distribution \
+            --id "$DISTRIBUTION_ID" \
+            --query "Distribution.Status" \
+            --output text 2>/dev/null || echo "Unknown")
+        
+        if [ "$DIST_STATUS" = "Deployed" ]; then
+            echo "✓ Distribution is deployed"
+            break
+        fi
+        
+        echo "  Distribution status: $DIST_STATUS (waiting ${elapsed}s/${MAX_WAIT}s)"
+        sleep $WAIT_INTERVAL
+        elapsed=$((elapsed + WAIT_INTERVAL))
+    done
+
+    if [ "$DIST_STATUS" != "Deployed" ]; then
+        echo "⚠️  Warning: Distribution not fully deployed after ${MAX_WAIT}s"
     fi
-    
-    echo "  Distribution status: $DIST_STATUS (waiting ${elapsed}s/${MAX_WAIT}s)"
-    sleep $WAIT_INTERVAL
-    elapsed=$((elapsed + WAIT_INTERVAL))
-done
-
-if [ "$DIST_STATUS" != "Deployed" ]; then
-    echo "⚠️  Warning: Distribution not fully deployed after ${MAX_WAIT}s"
+else
+    echo "⏩ Skipping CloudFront distribution wait (GITOPS_WAIT_DISTRIBUTION_READY not set to true)"
 fi
 
 # Health check
