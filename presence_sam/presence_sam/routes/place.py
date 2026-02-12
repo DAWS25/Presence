@@ -3,4 +3,4 @@ from . import fn_router as router
 
 @router.get("/place/{id}")
 def get(id: str = None):
-    return RedirectResponse(url=f"/place.html?place={id}")
+    return RedirectResponse(url=f"/app/place.html?place={id}")

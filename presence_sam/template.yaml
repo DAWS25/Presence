@@ -33,6 +33,32 @@ Parameters:
     Default: unknown
     Description: Git commit SHA
 
+  DBUser:
+    Type: String
+    Default: postgres
+    Description: Database user
+
+  DBPassword:
+    Type: String
+    Default: DoNotUseDefaultPasswordsPlease
+    NoEcho: true
+    Description: Database password
+
+  DBHost:
+    Type: String
+    Default: postgres
+    Description: Database host
+
+  DBPort:
+    Type: String
+    Default: "5432"
+    Description: Database port
+
+  DBName:
+    Type: String
+    Default: presence
+    Description: Database name
+
 Resources:
   PresenceFunction:
     Type: AWS::Serverless::Function 
@@ -46,6 +72,11 @@ Resources:
         Variables:
           APP_VERSION: !Ref AppVersion
           GIT_COMMIT: !Ref GitCommit
+          DB_USER: !Ref DBUser
+          DB_PASSWORD: !Ref DBPassword
+          DB_HOST: !Ref DBHost
+          DB_PORT: !Ref DBPort
+          DB_NAME: !Ref DBName
       Events:
         PresenceApi:
           Type: HttpApi

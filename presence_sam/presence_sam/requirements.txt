@@ -1,3 +1,5 @@
 requests
 mangum
 fastapi
+sqlmodel
+psycopg2-binary

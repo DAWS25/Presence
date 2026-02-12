@@ -26,7 +26,7 @@ cp -a $WEB_DIR/node_modules $WEB_DIR/target/
 # Build SAM application
 echo "📦 Building SAM application..."
 pushd "$DIR/presence_sam"
-TEMPLATE_PATH="$DIR/presence_cform/sam-api.sam.yaml"
+TEMPLATE_PATH="$DIR/presence_sam/template.yaml"
 if command -v sam >/dev/null 2>&1; then
   sam build --parameter-overrides "LambdaArchitecture=x86_64" --template "$TEMPLATE_PATH"
 elif command -v devbox >/dev/null 2>&1; then
