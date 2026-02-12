@@ -25,6 +25,6 @@ cp -a $WEB_DIR/node_modules $WEB_DIR/target/
 
 echo "🔧 Building SAM API function..."
 pushd $DIR/presence_sam
-sam build --use-container 
+sam build
 popd
 echo "Done"
