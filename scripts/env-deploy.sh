@@ -92,26 +92,9 @@ log "S3 sync to $BUCKET_NAME..."
 aws s3 sync $DIR/presence_web/target/ s3://$BUCKET_NAME/ --delete
 log "S3 sync complete"
 
-# Retrieve database connection parameters from stack outputs (VPC + DB deployed by tenant-deploy.sh)
+# Tenant ID for cross-stack references to shared account-level resources (VPC, DB)
 TENANT_ID=${TENANT_ID:-"presence-env"}
-DB_MASTER_USERNAME=${DB_MASTER_USERNAME:-postgres}
-DB_NAME=${DB_NAME:-presence}
-DB_HOST=$(aws cloudformation describe-stacks \
-    --stack-name $TENANT_ID-db-cluster \
-    --query "Stacks[0].Outputs[?OutputKey=='DBClusterEndpoint'].OutputValue" \
-    --output text)
-
-DB_PORT=$(aws cloudformation describe-stacks \
-    --stack-name $TENANT_ID-db-cluster \
-    --query "Stacks[0].Outputs[?OutputKey=='DBClusterPort'].OutputValue" \
-    --output text)
-
-DB_CLUSTER_RESOURCE_ID=$(aws cloudformation describe-stacks \
-    --stack-name $TENANT_ID-db-cluster \
-    --query "Stacks[0].Outputs[?OutputKey=='DBClusterResourceId'].OutputValue" \
-    --output text)
-
-log "✓ DB connection: $DB_HOST:$DB_PORT/$DB_NAME"
+log "Using TENANT_ID=$TENANT_ID for cross-stack DB references"
 
 # Deploy SAM API function
 log "Deploying SAM API function..."
@@ -133,13 +116,9 @@ sam deploy \
     --stack-name $ENV_ID-presence-api \
     --parameter-overrides \
         EnvId=$ENV_ID \
+        TenantId=$TENANT_ID \
         AppVersion=$APP_VERSION \
         GitCommit=$GIT_COMMIT \
-        DBUser=$DB_MASTER_USERNAME \
-        DBHost=$DB_HOST \
-        DBPort=$DB_PORT \
-        DBName=$DB_NAME \
-        DBClusterResourceId=$DB_CLUSTER_RESOURCE_ID \
     --capabilities CAPABILITY_IAM \
     --no-fail-on-empty-changeset \
     --no-confirm-changeset 

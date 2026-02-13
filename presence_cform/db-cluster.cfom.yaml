@@ -146,6 +146,12 @@ Outputs:
     Export:
       Name: !Sub "${EnvId}-DBSecurityGroupId"
 
+  DBMasterUsername:
+    Description: Master username for the database
+    Value: !Ref MasterUsername
+    Export:
+      Name: !Sub "${EnvId}-DBMasterUsername"
+
   DBClusterResourceId:
     Description: Aurora cluster resource ID (for IAM auth)
     Value: !GetAtt DBCluster.DBClusterResourceId
