@@ -93,7 +93,7 @@ aws s3 sync $DIR/presence_web/target/ s3://$BUCKET_NAME/ --delete
 log "S3 sync complete"
 
 # Retrieve database connection parameters from stack outputs (VPC + DB deployed by tenant-deploy.sh)
-TENANT_ID=${TENANT_ID:-"$ENV_ID-env"}
+TENANT_ID=${TENANT_ID:-"presence-env"}
 DB_MASTER_USERNAME=${DB_MASTER_USERNAME:-postgres}
 DB_NAME=${DB_NAME:-presence}
 DB_HOST=$(aws cloudformation describe-stacks \
