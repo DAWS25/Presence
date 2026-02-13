@@ -73,6 +73,13 @@ Resources:
                       Fn::ImportValue: !Sub "${TenantId}-DBClusterResourceId"
                     DBUser:
                       Fn::ImportValue: !Sub "${TenantId}-DBMasterUsername"
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue: !Sub "${TenantId}-DBSecurityGroupId"
+        SubnetIds:
+          Fn::Split:
+            - ","
+            - Fn::ImportValue: !Sub "${TenantId}-IsolatedSubnetIds"
       Events:
         PresenceApi:
           Type: HttpApi
