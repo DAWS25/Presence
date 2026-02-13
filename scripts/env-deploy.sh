@@ -3,8 +3,8 @@ set -ex
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DIR="$(dirname "$SCRIPT_DIR")"
 
-log_ts() { echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] $*"; }
-log_ts "script [$0] started"
+log() { echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] $*"; }
+log "script [$0] started"
 # 
 
 # Validate required environment variables
@@ -24,7 +24,7 @@ if [ -z "$TARGET_ACCOUNT_ID" ]; then
 fi
 
 # Build
-log_ts "🔨 Building environment for $ENV_ID..."
+log "🔨 Building environment for $ENV_ID..."
 source "$SCRIPT_DIR/env-build.sh"
 
 CURRENT_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
@@ -76,7 +76,7 @@ else
     echo "✓ CERTIFICATE_ARN already defined: $CERTIFICATE_ARN"
 fi
 
-log_ts "Deploying web-resources stack..."
+log "Deploying web-resources stack..."
 aws cloudformation deploy \
     --stack-name $ENV_ID-web-resources \
     --template-file $DIR/presence_cform/web-resources.cform.yaml \
@@ -88,12 +88,33 @@ BUCKET_NAME=$(aws cloudformation describe-stacks \
     --query "Stacks[0].Outputs[?OutputKey=='ResourcesBucketName'].OutputValue" \
     --output text)    
 
-log_ts "S3 sync to $BUCKET_NAME..."
+log "S3 sync to $BUCKET_NAME..."
 aws s3 sync $DIR/presence_web/target/ s3://$BUCKET_NAME/ --delete
-log_ts "S3 sync complete"
+log "S3 sync complete"
+
+# Retrieve database connection parameters from stack outputs (VPC + DB deployed by tenant-deploy.sh)
+TENANT_ID=${TENANT_ID:-"$ENV_ID-env"}
+DB_MASTER_USERNAME=${DB_MASTER_USERNAME:-postgres}
+DB_NAME=${DB_NAME:-presence}
+DB_HOST=$(aws cloudformation describe-stacks \
+    --stack-name $TENANT_ID-db-cluster \
+    --query "Stacks[0].Outputs[?OutputKey=='DBClusterEndpoint'].OutputValue" \
+    --output text)
+
+DB_PORT=$(aws cloudformation describe-stacks \
+    --stack-name $TENANT_ID-db-cluster \
+    --query "Stacks[0].Outputs[?OutputKey=='DBClusterPort'].OutputValue" \
+    --output text)
+
+DB_CLUSTER_RESOURCE_ID=$(aws cloudformation describe-stacks \
+    --stack-name $TENANT_ID-db-cluster \
+    --query "Stacks[0].Outputs[?OutputKey=='DBClusterResourceId'].OutputValue" \
+    --output text)
+
+log "✓ DB connection: $DB_HOST:$DB_PORT/$DB_NAME"
 
 # Deploy SAM API function
-log_ts "Deploying SAM API function..."
+log "Deploying SAM API function..."
 SAM_BUILD_TEMPLATE="$DIR/presence_sam/.aws-sam/build/template.yaml"
 if [ ! -f "$SAM_BUILD_TEMPLATE" ]; then
     echo "❌ SAM build output not found: $SAM_BUILD_TEMPLATE"
@@ -105,7 +126,7 @@ fi
 APP_VERSION=$(date -u +"%Y%m%d-%H%M%S")
 GIT_COMMIT=$(git -C "$DIR" rev-parse --short HEAD 2>/dev/null || echo "unknown")
 
-log_ts "📦 Deploying version: $APP_VERSION (commit: $GIT_COMMIT)"
+log "📦 Deploying version: $APP_VERSION (commit: $GIT_COMMIT)"
 
 pushd $DIR/presence_sam
 sam deploy \
@@ -114,13 +135,18 @@ sam deploy \
         EnvId=$ENV_ID \
         AppVersion=$APP_VERSION \
         GitCommit=$GIT_COMMIT \
+        DBUser=$DB_MASTER_USERNAME \
+        DBHost=$DB_HOST \
+        DBPort=$DB_PORT \
+        DBName=$DB_NAME \
+        DBClusterResourceId=$DB_CLUSTER_RESOURCE_ID \
     --capabilities CAPABILITY_IAM \
     --no-fail-on-empty-changeset \
     --no-confirm-changeset 
 popd
-log_ts "✓ SAM API function deployed"
+log "✓ SAM API function deployed"
 
-log_ts "Deploying web-distribution stack..."
+log "Deploying web-distribution stack..."
 aws cloudformation deploy \
     --stack-name $ENV_ID-web-distribution \
     --template-file $DIR/presence_cform/web-distribution.cform.yaml \
@@ -130,7 +156,7 @@ aws cloudformation deploy \
         CertificateArn="$CERTIFICATE_ARN" \
     --no-fail-on-empty-changeset
 
-log_ts "Deploying web-records stack..."
+log "Deploying web-records stack..."
 aws cloudformation deploy \
     --stack-name $ENV_ID-web-records \
     --template-file $DIR/presence_cform/web-records.cform.yaml \
@@ -152,7 +178,7 @@ DISTRIBUTION_URL=$(aws cloudformation describe-stacks \
     --output text)
 
 # Invalidate CloudFront cache to ensure new content is served
-log_ts "🚀 Invalidating CloudFront cache..."
+log "🚀 Invalidating CloudFront cache..."
 aws cloudfront create-invalidation \
     --distribution-id "$DISTRIBUTION_ID" \
     --paths "/*" 
@@ -190,7 +216,7 @@ else
 fi
 
 # Health check
-log_ts "🏥 Running health check on https://$DOMAIN_NAME/fn/__hc"
+log "🏥 Running health check on https://$DOMAIN_NAME/fn/__hc"
 HEALTH_CHECK_URL="https://$DOMAIN_NAME/fn/__hc"
 HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_CHECK_URL" --connect-timeout 10 --max-time 30 || echo "000")
 
@@ -206,7 +232,7 @@ else
 fi
 
 echo ""
-log_ts "✅ Deployment to $ENV_ID completed!"
-log_ts "🌐 Distribution URL: https://$DISTRIBUTION_URL"
-log_ts "🌐 Custom Domain: https://$DOMAIN_NAME"
-log_ts "🏥 Health Status: $HEALTH_STATUS"
+log "✅ Deployment to $ENV_ID completed!"
+log "🌐 Distribution URL: https://$DISTRIBUTION_URL"
+log "🌐 Custom Domain: https://$DOMAIN_NAME"
+log "🏥 Health Status: $HEALTH_STATUS"

@@ -18,20 +18,6 @@ Parameters:
     Default: postgres
     Description: Master username for the database
     AllowedPattern: ^[a-zA-Z][a-zA-Z0-9_]*$
- 
-  MasterUserPassword:
-    Type: String
-    NoEcho: true
-    Description: Master password for the database (min 8 characters)
-    MinLength: 8
-
-  VpcId:
-    Type: AWS::EC2::VPC::Id
-    Description: VPC ID where the database will be deployed
-
-  SubnetIds:
-    Type: List<AWS::EC2::Subnet::Id>
-    Description: List of subnet IDs for the database (minimum 2 in different AZs)
 
   MinCapacity:
     Type: Number
@@ -51,7 +37,10 @@ Resources:
     Properties:
       DBSubnetGroupName: !Sub "${EnvId}-db-subnet-group"
       DBSubnetGroupDescription: !Sub "Subnet group for ${EnvId} Aurora cluster"
-      SubnetIds: !Ref SubnetIds
+      SubnetIds:
+        Fn::Split:
+          - ","
+          - Fn::ImportValue: !Sub "${EnvId}-IsolatedSubnetIds"
       Tags:
         - Key: Name
           Value: !Sub "${EnvId}-db-subnet-group"
@@ -63,7 +52,8 @@ Resources:
     Properties:
       GroupName: !Sub "${EnvId}-db-security-group"
       GroupDescription: !Sub "Security group for ${EnvId} Aurora cluster"
-      VpcId: !Ref VpcId
+      VpcId:
+        Fn::ImportValue: !Sub "${EnvId}-VpcId"
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 5432
@@ -83,10 +73,10 @@ Resources:
       DBClusterIdentifier: !Sub "${EnvId}-db-cluster"
       Engine: aurora-postgresql
       EngineMode: provisioned
-      EngineVersion: "15.4"
+      EngineVersion: "16.6"
       DatabaseName: !Ref DatabaseName
       MasterUsername: !Ref MasterUsername
-      MasterUserPassword: !Ref MasterUserPassword
+      ManageMasterUserPassword: true
       DBSubnetGroupName: !Ref DBSubnetGroup
       VpcSecurityGroupIds:
         - !Ref DBSecurityGroup
@@ -97,6 +87,7 @@ Resources:
       PreferredBackupWindow: "03:00-04:00"
       PreferredMaintenanceWindow: "mon:04:00-mon:05:00"
       EnableHttpEndpoint: true
+      EnableIAMDatabaseAuthentication: true
       StorageEncrypted: true
       Tags:
         - Key: Name
@@ -155,8 +146,20 @@ Outputs:
     Export:
       Name: !Sub "${EnvId}-DBSecurityGroupId"
 
+  DBClusterResourceId:
+    Description: Aurora cluster resource ID (for IAM auth)
+    Value: !GetAtt DBCluster.DBClusterResourceId
+    Export:
+      Name: !Sub "${EnvId}-DBClusterResourceId"
+
+  MasterUserSecretArn:
+    Description: ARN of the Secrets Manager secret containing the master password
+    Value: !GetAtt DBCluster.MasterUserSecret.SecretArn
+    Export:
+      Name: !Sub "${EnvId}-DBMasterUserSecretArn"
+
   ConnectionString:
-    Description: PostgreSQL connection string (password not included)
+    Description: PostgreSQL connection string (password managed by Secrets Manager)
     Value: !Sub "postgresql://${MasterUsername}@${DBCluster.Endpoint.Address}:${DBCluster.Endpoint.Port}/${DatabaseName}"
     Export:
       Name: !Sub "${EnvId}-DBConnectionString"

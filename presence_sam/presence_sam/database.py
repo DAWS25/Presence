@@ -2,20 +2,39 @@
 
 import os
 import logging
+import boto3
 from sqlmodel import SQLModel, create_engine, Session, text
 
 logger = logging.getLogger(__name__)
 
 # Build connection URL from environment variables (matching compose.yaml defaults)
 DB_USER = os.getenv("DB_USER", "postgres")
-DB_PASSWORD = os.getenv("DB_PASSWORD", "DoNotUseDefaultPasswordsPlease")
 DB_HOST = os.getenv("DB_HOST", "localhost")
 DB_PORT = os.getenv("DB_PORT", "5432")
 DB_NAME = os.getenv("DB_NAME", "presence")
+DB_IAM_AUTH = os.getenv("DB_IAM_AUTH", "false").lower() == "true"
 
-DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
-engine = create_engine(DATABASE_URL, echo=False)
+def _get_engine():
+    """Create a SQLAlchemy engine, using IAM auth token if enabled."""
+    if DB_IAM_AUTH:
+        region = os.getenv("AWS_REGION_NAME", os.getenv("AWS_REGION", "us-east-1"))
+        rds_client = boto3.client("rds", region_name=region)
+        token = rds_client.generate_db_auth_token(
+            DBHostname=DB_HOST,
+            Port=int(DB_PORT),
+            DBUsername=DB_USER,
+            Region=region,
+        )
+        database_url = f"postgresql://{DB_USER}:{token}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+        return create_engine(database_url, echo=False, connect_args={"sslmode": "require"})
+    else:
+        db_password = os.getenv("DB_PASSWORD", "DoNotUseDefaultPasswordsPlease")
+        database_url = f"postgresql://{DB_USER}:{db_password}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+        return create_engine(database_url, echo=False)
+
+
+engine = _get_engine()
 
 
 def create_db_and_tables():
