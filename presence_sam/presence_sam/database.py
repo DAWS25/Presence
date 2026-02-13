@@ -2,6 +2,7 @@
 
 import os
 import logging
+from urllib.parse import quote_plus
 import boto3
 from sqlmodel import SQLModel, create_engine, Session, text
 
@@ -26,7 +27,7 @@ def _get_engine():
             DBUsername=DB_USER,
             Region=region,
         )
-        database_url = f"postgresql://{DB_USER}:{token}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+        database_url = f"postgresql://{DB_USER}:{quote_plus(token)}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
         return create_engine(database_url, echo=False, connect_args={"sslmode": "require"})
     else:
         db_password = os.getenv("DB_PASSWORD", "DoNotUseDefaultPasswordsPlease")
