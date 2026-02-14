@@ -26,9 +26,9 @@ fi
 BUILT_TEMPLATE="$DIR/presence_edge/.aws-sam/build/template.yaml"
 
 if command -v sam >/dev/null 2>&1; then
-    sam local start-lambda --host 0.0.0.0 --port 13343 --template "$BUILT_TEMPLATE"
+    sam local start-lambda --host 0.0.0.0 --port 3343 --template "$BUILT_TEMPLATE"
 elif command -v devbox >/dev/null 2>&1; then
-    cd "$DIR/presence_edge" && devbox run -- sam local start-lambda --host 0.0.0.0 --port 13343 --template "$BUILT_TEMPLATE"
+    cd "$DIR/presence_edge" && devbox run -- sam local start-lambda --host 0.0.0.0 --port 3343 --template "$BUILT_TEMPLATE"
 else
     echo "Error: sam not found. Install AWS SAM CLI or use devbox." >&2
     exit 1

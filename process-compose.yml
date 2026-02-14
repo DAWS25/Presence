@@ -5,6 +5,8 @@ processes:
     command: ./scripts/dev-healthcheck-start.sh
   1-edge:
     command: ./scripts/dev-edge-start.sh
+  1-edge-adapter:
+    command: ./scripts/dev-edge-adapter-start.sh
   1-sam:
     command: ./scripts/dev-sam-start.sh
   1-web:

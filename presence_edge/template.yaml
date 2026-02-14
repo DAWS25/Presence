@@ -6,8 +6,8 @@ Resources:
   EdgeFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: .
-      Handler: app.handler
+      CodeUri: src
+      Handler: presence_edge.app.handler
       Runtime: python3.12
       MemorySize: 128
       Timeout: 30
