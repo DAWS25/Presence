@@ -1,7 +1,7 @@
 """Human-readable ID generator.
 
-Format: adjective-adjective-noun
-All words are common English and 6 characters or fewer.
+Format: adjective-adjective-place
+Words are common English.
 """
 
 from __future__ import annotations
@@ -19,14 +19,14 @@ def _load_words(filename: str) -> tuple[str, ...]:
 
 
 ADJECTIVES = _load_words("_adjectives.txt")
-NOUNS = _load_words("_nouns.txt")
+PLACES = _load_words("_places.txt")
 
 
 def generate_human_id() -> str:
-	"""Generate a human-readable ID in adjective-adjective-noun format."""
+	"""Generate a human-readable ID in adjective-adjective-place format."""
 
 	adj1 = random.choice(ADJECTIVES)
 	adj2 = random.choice(ADJECTIVES)
-	noun = random.choice(NOUNS)
-	return f"{adj1}-{adj2}-{noun}"
+	place = random.choice(PLACES)
+	return f"{adj1}-{adj2}-{place}"
 
