@@ -13,4 +13,4 @@ Please make sure you have consent and comply with the applicable laws in your lo
 # Join us!
 
 This project is open to your contribution, be most welcome!
-Built with ❤️ at <a href="https://linuxtips.io/descomplicando-aws/">LinuxTips.io</a>
+Built with ❤️ at <a href="https://linuxtips.io/descomplicando-aws/" target="blank">LinuxTips.io</a>
