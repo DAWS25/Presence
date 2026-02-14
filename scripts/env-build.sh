@@ -27,4 +27,10 @@ echo "🔧 Building SAM API function..."
 pushd $DIR/presence_sam
 sam build --use-container 
 popd
+
+echo "🔧 Building Lambda@Edge function..."
+pushd $DIR/presence_edge
+sam build
+popd
+
 echo "Done"

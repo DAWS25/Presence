@@ -37,4 +37,17 @@ else
 fi
 popd
 
+# Build Lambda@Edge function
+echo "📦 Building Lambda@Edge function..."
+pushd "$DIR/presence_edge"
+if command -v sam >/dev/null 2>&1; then
+  sam build
+elif command -v devbox >/dev/null 2>&1; then
+  devbox run -- sam build
+else
+  echo "Error: sam not found. Install AWS SAM CLI or use devbox." >&2
+  exit 1
+fi
+popd
+
 echo "Done"

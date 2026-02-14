@@ -24,6 +24,14 @@ Parameters:
     Type: String
     Description: ARN of the ACM certificate for HTTPS
 
+  EdgeFunctionArn:
+    Type: String
+    Default: ""
+    Description: Versioned ARN of the Lambda@Edge function
+
+Conditions:
+  HasEdgeFunction: !Not [!Equals [!Ref EdgeFunctionArn, ""]]
+
 Resources:
   # S3 Bucket for static files
   DistributionBucket:
@@ -69,6 +77,26 @@ Resources:
             Cookies:
               Forward: none
         CacheBehaviors:
+          - !If
+            - HasEdgeFunction
+            - PathPattern: "/edge/*"
+              TargetOriginId: S3Origin
+              ViewerProtocolPolicy: https-only
+              AllowedMethods:
+                - GET
+                - HEAD
+              CachedMethods:
+                - GET
+                - HEAD
+              Compress: true
+              ForwardedValues:
+                QueryString: false
+                Cookies:
+                  Forward: none
+              LambdaFunctionAssociations:
+                - EventType: origin-request
+                  LambdaFunctionARN: !Ref EdgeFunctionArn
+            - !Ref AWS::NoValue
           - PathPattern: "/fn/*"
             TargetOriginId: ApiOrigin
             ViewerProtocolPolicy: https-only
