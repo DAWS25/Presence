@@ -278,6 +278,7 @@ class PresenceHistory {
                         <div class="event-person">${personName}</div>
                         <div class="event-meta">Faces: ${eventItem.faceCount}</div>
                     </div>
+                    <span class="event-card-expand">👆</span>
                 </div>
             `;
         }).join('');

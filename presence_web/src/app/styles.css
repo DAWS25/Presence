@@ -311,6 +311,37 @@ html, body {
     border: 1px solid rgba(255, 242, 218, 0.08);
 }
 
+.event-card-clickable {
+    cursor: pointer;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+}
+
+.event-card-clickable:hover {
+    transform: translateY(-3px);
+    border-color: rgba(255, 242, 218, 0.3);
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.45);
+}
+
+.event-card-clickable:active {
+    transform: translateY(-1px);
+}
+
+.event-card-expand {
+    position: absolute;
+    bottom: 0.4rem;
+    right: 0.4rem;
+    font-size: 0.75rem;
+    color: var(--gray);
+    opacity: 0.5;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+}
+
+.event-card-clickable:hover .event-card-expand {
+    opacity: 1;
+}
+
 .event-card img {
     width: 100%;
     height: 96px;
