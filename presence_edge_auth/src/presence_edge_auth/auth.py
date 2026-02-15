@@ -7,7 +7,7 @@ Lambda@Edge event.
 import json
 import base64
 
-from presence_edge.response import cf_response
+from presence_edge_auth.response import cf_response
 
 
 def _decode_body(request):
@@ -48,7 +48,12 @@ def google_callback(request):
 
         return cf_response(
             200,
-            json.dumps({"status": "ok"}),
+            json.dumps({
+                "status": "ok",
+                "name": user_data.get("name", ""),
+                "email": user_data.get("email", ""),
+                "picture": user_data.get("picture", ""),
+            }),
             content_type="application/json",
         )
     except Exception as e:

@@ -1,5 +1,5 @@
 import pytest
-from presence_edge.app import handler
+from presence_edge_auth.app import handler
 
 
 def _make_cf_event(uri, method="GET"):

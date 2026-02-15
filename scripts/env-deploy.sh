@@ -115,32 +115,45 @@ sam deploy \
 popd
 echo "✓ SAM API function deployed"
 
-# Deploy Lambda@Edge function (must be us-east-1)
-echo "🔧 Deploying Lambda@Edge function..."
-EDGE_BUILD_TEMPLATE="$DIR/presence_edge/.aws-sam/build/template.yaml"
+# Deploy Lambda@Edge auth function (must be us-east-1)
+echo "🔧 Deploying Lambda@Edge auth function..."
+EDGE_BUILD_TEMPLATE="$DIR/presence_edge_auth/.aws-sam/build/template.yaml"
 if [ ! -f "$EDGE_BUILD_TEMPLATE" ]; then
-    echo "❌ Lambda@Edge build output not found: $EDGE_BUILD_TEMPLATE"
+    echo "❌ Lambda@Edge auth build output not found: $EDGE_BUILD_TEMPLATE"
     echo "   Run $SCRIPT_DIR/env-build.sh first to generate build artifacts."
     exit 1
 fi
 
-pushd $DIR/presence_edge
+pushd $DIR/presence_edge_auth
 sam deploy \
     --stack-name $ENV_ID-presence-edge \
     --region us-east-1 \
+    --parameter-overrides EnvId=$ENV_ID \
     --capabilities CAPABILITY_IAM \
     --no-fail-on-empty-changeset \
     --no-confirm-changeset
 popd
-echo "✓ Lambda@Edge function deployed"
+echo "✓ Lambda@Edge auth function deployed"
 
-# Get Edge function versioned ARN
-EDGE_FUNCTION_ARN=$(aws cloudformation describe-stacks \
-    --stack-name $ENV_ID-presence-edge \
+# Deploy Lambda@Edge CORS function (must be us-east-1)
+echo "🔧 Deploying Lambda@Edge CORS function..."
+EDGE_CORS_BUILD_TEMPLATE="$DIR/presence_edge_cors/.aws-sam/build/template.yaml"
+if [ ! -f "$EDGE_CORS_BUILD_TEMPLATE" ]; then
+    echo "❌ Lambda@Edge CORS build output not found: $EDGE_CORS_BUILD_TEMPLATE"
+    echo "   Run $SCRIPT_DIR/env-build.sh first to generate build artifacts."
+    exit 1
+fi
+
+pushd $DIR/presence_edge_cors
+sam deploy \
+    --stack-name $ENV_ID-presence-edge-cors \
     --region us-east-1 \
-    --query "Stacks[0].Outputs[?OutputKey=='EdgeFunctionVersion'].OutputValue" \
-    --output text)
-echo "✓ Edge function ARN: $EDGE_FUNCTION_ARN"
+    --parameter-overrides EnvId=$ENV_ID \
+    --capabilities CAPABILITY_IAM \
+    --no-fail-on-empty-changeset \
+    --no-confirm-changeset
+popd
+echo "✓ Lambda@Edge CORS function deployed"
 
 aws cloudformation deploy \
     --stack-name $ENV_ID-web-distribution \
@@ -149,7 +162,6 @@ aws cloudformation deploy \
         EnvId="$ENV_ID" \
         DomainName="$DOMAIN_NAME" \
         CertificateArn="$CERTIFICATE_ARN" \
-        EdgeFunctionArn="$EDGE_FUNCTION_ARN" \
     --no-fail-on-empty-changeset
 
 aws cloudformation deploy \

@@ -22,5 +22,5 @@ for i in $(seq 1 30); do
 done
 
 echo "🔌 Starting Edge adapter on port 3344..."
-cd "$DIR/presence_edge"
+cd "$DIR/presence_edge_auth"
 "$VENV_DIR/bin/python3" adapter.py

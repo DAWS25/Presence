@@ -33,8 +33,13 @@ pushd $DIR/presence_sam
 sam build --use-container 
 popd
 
-echo "🔧 Building Lambda@Edge function..."
-pushd $DIR/presence_edge
+echo "🔧 Building Lambda@Edge auth function..."
+pushd $DIR/presence_edge_auth
+sam build
+popd
+
+echo "🔧 Building Lambda@Edge CORS function..."
+pushd $DIR/presence_edge_cors
 sam build
 popd
 

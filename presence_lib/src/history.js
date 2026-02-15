@@ -12,8 +12,7 @@ class PresenceHistory {
         this.people = new Map(); // key -> person
         this.events = []; // eventos recentes
         this.maxEvents = 100;
-        this.displayCount = 10; // eventos exibidos por página
-        this.scrollOffset = 0; // offset do scroll
+        this.displayCount = 100; // max visible events
         this.seq = 0;
         this.tableBody = document.getElementById('presenceBody');
         this.cardsEl = document.getElementById('presenceCards');
@@ -213,14 +212,15 @@ class PresenceHistory {
     /**
      * Add a welcome message to the events panel
      */
-    addWelcomeMessage(title, message) {
+    addWelcomeMessage(title, message, icon) {
         const msgEvent = {
             timestamp: new Date().toISOString(),
             snapshot: null,
             faceCount: 0,
             isWelcome: true,
             title,
-            message
+            message,
+            icon: icon || 'ℹ️',
         };
         this.events.unshift(msgEvent);
         if (this.events.length > this.maxEvents) {
@@ -237,20 +237,22 @@ class PresenceHistory {
             return;
         }
 
-        // Show 10 events starting from scroll offset
-        const visibleEvents = this.events.slice(this.scrollOffset, this.scrollOffset + this.displayCount);
+        // Show all events (up to displayCount)
+        const visibleEvents = this.events.slice(0, this.displayCount);
         const cardsHtml = visibleEvents.map((eventItem) => {
             const timeStr = new Date(eventItem.timestamp).toLocaleTimeString();
             
             // Render welcome messages differently
             if (eventItem.isWelcome) {
+                const icon = eventItem.icon || 'ℹ️';
                 return `
                     <div class="event-card event-card-welcome">
-                        <div class="event-header">
-                            <div class="event-title">${eventItem.title}</div>
-                            <div class="event-time">${timeStr}</div>
-                        </div>
+                        <div class="event-card-icon">${icon}</div>
                         <div class="event-info">
+                            <div class="event-header">
+                                <div class="event-title">${eventItem.title}</div>
+                                <div class="event-time">${timeStr}</div>
+                            </div>
                             <div class="event-meta">${eventItem.message}</div>
                         </div>
                     </div>
@@ -294,22 +296,20 @@ class PresenceHistory {
     }
 
     /**
-     * Scroll events left (show newer events)
+     * Scroll the events list container left (native scroll).
      */
     scrollLeft() {
-        if (this.scrollOffset > 0) {
-            this.scrollOffset--;
-            this.renderCards();
+        if (this.cardsEl) {
+            this.cardsEl.scrollBy({ left: -200, behavior: 'smooth' });
         }
     }
 
     /**
-     * Scroll events right (show older events)
+     * Scroll the events list container right (native scroll).
      */
     scrollRight() {
-        if (this.scrollOffset < this.events.length - this.displayCount) {
-            this.scrollOffset++;
-            this.renderCards();
+        if (this.cardsEl) {
+            this.cardsEl.scrollBy({ left: 200, behavior: 'smooth' });
         }
     }
 

@@ -2,12 +2,18 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Lambda@Edge function for Presence
 
+Parameters:
+  EnvId:
+    Type: String
+    Default: project
+    Description: Environment identifier used to prefix exported outputs.
+
 Resources:
   EdgeFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: src
-      Handler: presence_edge.app.handler
+      Handler: presence_edge_auth.app.handler
       Runtime: python3.12
       MemorySize: 128
       Timeout: 30
@@ -26,6 +32,10 @@ Outputs:
   EdgeFunctionVersion:
     Description: Lambda@Edge versioned ARN for CloudFront association
     Value: !Ref EdgeFunction.Version
+    Export:
+      Name: !Sub "${EnvId}-EdgeFunctionVersion"
   EdgeFunctionArn:
     Description: Lambda@Edge function ARN
     Value: !GetAtt EdgeFunction.Arn
+    Export:
+      Name: !Sub "${EnvId}-EdgeFunctionArn"

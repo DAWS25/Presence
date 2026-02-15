@@ -53,26 +53,27 @@ BUCKET_NAME=$($AWS_CLI cloudformation describe-stacks \
 
 $AWS_CLI s3 sync $DIR/presence_web/target/ s3://$BUCKET_NAME/ --delete
 
-# Deploy Lambda@Edge function
-echo "🔧 Deploying Lambda@Edge function..."
-pushd $DIR/presence_edge
+# Deploy Lambda@Edge auth function
+echo "🔧 Deploying Lambda@Edge auth function..."
+pushd $DIR/presence_edge_auth
 $AWS_CLI cloudformation deploy \
     --stack-name $ENV_ID-presence-edge \
-    --template-file $DIR/presence_edge/.aws-sam/build/template.yaml \
+    --template-file $DIR/presence_edge_auth/.aws-sam/build/template.yaml \
+    --parameter-overrides EnvId="$ENV_ID" \
     --capabilities CAPABILITY_IAM \
     --no-fail-on-empty-changeset
 popd
 
-EDGE_FUNCTION_ARN=$($AWS_CLI cloudformation describe-stacks \
-    --stack-name $ENV_ID-presence-edge \
-    --query "Stacks[0].Outputs[?OutputKey=='EdgeFunctionVersion'].OutputValue" \
-    --output text 2>/dev/null || echo "")
-
-EDGE_PARAM=""
-if [ -n "$EDGE_FUNCTION_ARN" ] && [ "$EDGE_FUNCTION_ARN" != "None" ]; then
-    EDGE_PARAM="EdgeFunctionArn=$EDGE_FUNCTION_ARN"
-    echo "✓ Edge function ARN: $EDGE_FUNCTION_ARN"
-fi
+# Deploy Lambda@Edge CORS function
+echo "🔧 Deploying Lambda@Edge CORS function..."
+pushd $DIR/presence_edge_cors
+$AWS_CLI cloudformation deploy \
+    --stack-name $ENV_ID-presence-edge-cors \
+    --template-file $DIR/presence_edge_cors/.aws-sam/build/template.yaml \
+    --parameter-overrides EnvId="$ENV_ID" \
+    --capabilities CAPABILITY_IAM \
+    --no-fail-on-empty-changeset
+popd
 
 $AWS_CLI cloudformation deploy \
     --stack-name $ENV_ID-web-distribution \
@@ -80,7 +81,6 @@ $AWS_CLI cloudformation deploy \
     --parameter-overrides \
         EnvId="$ENV_ID" \
         DomainName="$DOMAIN_NAME" \
-        $EDGE_PARAM \
     --no-fail-on-empty-changeset
 
 $AWS_CLI cloudformation deploy \

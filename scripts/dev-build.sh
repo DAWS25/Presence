@@ -42,9 +42,22 @@ else
 fi
 popd
 
-# Build Lambda@Edge function
-echo "📦 Building Lambda@Edge function..."
-pushd "$DIR/presence_edge"
+# Build Lambda@Edge auth function
+echo "📦 Building Lambda@Edge auth function..."
+pushd "$DIR/presence_edge_auth"
+if command -v sam >/dev/null 2>&1; then
+  sam build
+elif command -v devbox >/dev/null 2>&1; then
+  devbox run -- sam build
+else
+  echo "Error: sam not found. Install AWS SAM CLI or use devbox." >&2
+  exit 1
+fi
+popd
+
+# Build Lambda@Edge CORS function
+echo "📦 Building Lambda@Edge CORS function..."
+pushd "$DIR/presence_edge_cors"
 if command -v sam >/dev/null 2>&1; then
   sam build
 elif command -v devbox >/dev/null 2>&1; then

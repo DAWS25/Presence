@@ -39,21 +39,18 @@ function initApp() {
         console.error('QRCode library not loaded');
     }
 
-    // Initialize events scroll buttons
+    // Initialize events scroll buttons — scroll the container natively
     const scrollLeftBtn = document.getElementById('scrollLeftBtn');
     const scrollRightBtn = document.getElementById('scrollRightBtn');
-    
-    if (scrollLeftBtn && scrollRightBtn) {
+    const eventsList = document.getElementById('presenceCards');
+
+    if (scrollLeftBtn && scrollRightBtn && eventsList) {
+        const scrollAmount = 200; // px per click
         scrollLeftBtn.addEventListener('click', () => {
-            if (window.presenceHistory) {
-                window.presenceHistory.scrollLeft();
-            }
+            eventsList.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
         });
-        
         scrollRightBtn.addEventListener('click', () => {
-            if (window.presenceHistory) {
-                window.presenceHistory.scrollRight();
-            }
+            eventsList.scrollBy({ left: scrollAmount, behavior: 'smooth' });
         });
     }
 }

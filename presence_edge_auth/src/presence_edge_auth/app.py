@@ -1,5 +1,5 @@
-from presence_edge.auth import google_callback
-from presence_edge.response import cf_response
+from presence_edge_auth.auth import google_callback
+from presence_edge_auth.response import cf_response
 
 
 def handler(event, context):

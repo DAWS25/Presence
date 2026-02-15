@@ -22,8 +22,30 @@
             });
             const data = await res.json();
             console.log('Server response:', data);
+
+            if (res.ok && window.presenceHistory) {
+                const name = data.name || data.email || 'User';
+                window.presenceHistory.addWelcomeMessage(
+                    'Authentication',
+                    `✓ Signed in as ${name}`,
+                    '🔓'
+                );
+            } else if (!res.ok && window.presenceHistory) {
+                window.presenceHistory.addWelcomeMessage(
+                    'Authentication',
+                    `✗ Sign-in failed (${res.status})`,
+                    '🔒'
+                );
+            }
         } catch (err) {
             console.error('Sign-in error:', err);
+            if (window.presenceHistory) {
+                window.presenceHistory.addWelcomeMessage(
+                    'Authentication',
+                    `✗ Sign-in error: ${err.message}`,
+                    '🔒'
+                );
+            }
         }
     }
 
@@ -46,6 +68,7 @@
             auto_select: true,
             cancel_on_tap_outside: false,
             itp_support: true,
+            use_fedcm_for_prompt: false,
         });
 
         // Display the One Tap prompt
