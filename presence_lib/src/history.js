@@ -11,11 +11,19 @@ class PresenceHistory {
         this.maxSize = maxSize; // max pessoas
         this.people = new Map(); // key -> person
         this.events = []; // eventos recentes
-        this.maxEvents = 50;
+        this.maxEvents = 100;
+        this.displayCount = 10; // eventos exibidos por página
+        this.scrollOffset = 0; // offset do scroll
         this.seq = 0;
         this.tableBody = document.getElementById('presenceBody');
         this.cardsEl = document.getElementById('presenceCards');
+        this.detailContent = document.getElementById('detailContent');
+        this.detailCloseBtn = document.getElementById('detailCloseBtn');
         this.selectedEvent = null;
+
+        if (this.detailCloseBtn) {
+            this.detailCloseBtn.addEventListener('click', () => this.closeDetail());
+        }
 
         if (window.eventManager && !window.__presenceHistoryListenerAdded) {
             window.eventManager.on('faceDetected', (data) => this.processDetections(data));
@@ -224,20 +232,14 @@ class PresenceHistory {
     renderCards() {
         if (!this.cardsEl) return;
 
-        // If an event is selected, show detail view
-        if (this.selectedEvent !== null) {
-            this.renderEventDetail(this.selectedEvent);
-            return;
-        }
-
         if (this.events.length === 0) {
-            this.cardsEl.innerHTML = '<div class="events-empty">Sem deteccoes</div>';
+            this.cardsEl.innerHTML = '';
             return;
         }
 
-        // Show only latest 3 events
-        const latestEvents = this.events.slice(0, 3);
-        const cardsHtml = latestEvents.map((eventItem) => {
+        // Show 10 events starting from scroll offset
+        const visibleEvents = this.events.slice(this.scrollOffset, this.scrollOffset + this.displayCount);
+        const cardsHtml = visibleEvents.map((eventItem) => {
             const timeStr = new Date(eventItem.timestamp).toLocaleTimeString();
             
             // Render welcome messages differently
@@ -285,18 +287,64 @@ class PresenceHistory {
             el.addEventListener('click', (e) => {
                 const index = parseInt(el.dataset.eventIndex, 10);
                 if (!isNaN(index) && this.events[index]) {
-                    this.selectedEvent = index;
-                    this.renderCards();
+                    this.showEventDetail(index);
                 }
             });
         });
     }
 
     /**
+     * Scroll events left (show newer events)
+     */
+    scrollLeft() {
+        if (this.scrollOffset > 0) {
+            this.scrollOffset--;
+            this.renderCards();
+        }
+    }
+
+    /**
+     * Scroll events right (show older events)
+     */
+    scrollRight() {
+        if (this.scrollOffset < this.events.length - this.displayCount) {
+            this.scrollOffset++;
+            this.renderCards();
+        }
+    }
+
+    /**
+     * Show event detail in fullscreen detail screen
+     */
+    showEventDetail(index) {
+        this.selectedEvent = index;
+        this.renderEventDetail(index);
+        if (window.screenManager) {
+            window.screenManager.showDetailScreen();
+        }
+    }
+
+    /**
+     * Close detail screen and restore main view.
+     */
+    closeDetail() {
+        this.selectedEvent = null;
+        if (window.screenManager) {
+            window.screenManager.showMainScreen();
+            window.screenManager.clearDetailContent();
+        } else if (this.detailContent) {
+            this.detailContent.innerHTML = '';
+        }
+        this.renderCards();
+    }
+
+    /**
      * Render detail view for a selected event
      */
     renderEventDetail(index) {
-        if (!this.cardsEl) return;
+        const detailContent = this.detailContent || document.getElementById('detailContent');
+        if (!detailContent) return;
+        
         const eventItem = this.events[index];
         if (!eventItem) {
             this.selectedEvent = null;
@@ -313,7 +361,7 @@ class PresenceHistory {
             ? `<img class="event-detail-img" src="${eventItem.snapshot}" alt="Face" />`
             : '';
 
-        this.cardsEl.innerHTML = `
+        const detailHtml = `
             <div class="event-detail">
                 <div class="event-detail-header">
                     <div class="event-title">${t('events.detail.title')}</div>
@@ -338,22 +386,30 @@ class PresenceHistory {
             </div>
         `;
 
-        this.cardsEl.querySelector('.event-detail-close').addEventListener('click', () => {
-            this.selectedEvent = null;
-            this.renderCards();
-        });
+        if (window.screenManager) {
+            window.screenManager.setDetailContent(detailHtml);
+        } else {
+            detailContent.innerHTML = detailHtml;
+        }
 
-        this.cardsEl.querySelector('#eventSaveBtn').addEventListener('click', () => {
-            const input = this.cardsEl.querySelector('#eventPersonName');
-            if (input && input.value.trim()) {
-                const name = input.value.trim();
-                eventItem.personName = name;
-                // Also update the person record so future detections inherit the name
-                this.updatePersonName(eventItem, name);
-            }
-            this.selectedEvent = null;
-            this.renderCards();
-        });
+        const closeBtn = detailContent.querySelector('.event-detail-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => this.closeDetail());
+        }
+
+        const saveBtn = detailContent.querySelector('#eventSaveBtn');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', () => {
+                const input = detailContent.querySelector('#eventPersonName');
+                if (input && input.value.trim()) {
+                    const name = input.value.trim();
+                    eventItem.personName = name;
+                    // Also update the person record so future detections inherit the name
+                    this.updatePersonName(eventItem, name);
+                }
+                this.closeDetail();
+            });
+        }
     }
     /**
      * Update the person record that best matches this event so future detections inherit the name.

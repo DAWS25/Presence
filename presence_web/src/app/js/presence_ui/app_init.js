@@ -2,18 +2,19 @@
  * Initialize app UI components when DOM is ready
  */
 function initApp() {
-    // Extract and display place ID from URL query parameter
     const urlParams = new URLSearchParams(window.location.search);
+
+    if (document.body) {
+        document.body.classList.add('hud-only');
+    }
+
+    // Extract and display place ID from URL query parameter
     const place = urlParams.get('place');
     const plidEl = document.getElementById('sharePlid');
-    const qrLinkEl = document.getElementById('shareQrLink');
     if (plidEl && place) {
         const placeUrl = `/fn/place/${place}`;
         plidEl.textContent = place;
         plidEl.href = placeUrl;
-        if (qrLinkEl) {
-            qrLinkEl.href = placeUrl;
-        }
     }
 
     const qrEl = document.getElementById('shareQr');
@@ -27,7 +28,7 @@ function initApp() {
                 text: placeUrl,
                 width: 112,
                 height: 112,
-                colorDark: "#000000",
+                colorDark: "#fff2da",
                 colorLight: "#32302f",
                 correctLevel: QRCode.CorrectLevel.H
             });
@@ -36,6 +37,24 @@ function initApp() {
         }
     } else if (!window.QRCode) {
         console.error('QRCode library not loaded');
+    }
+
+    // Initialize events scroll buttons
+    const scrollLeftBtn = document.getElementById('scrollLeftBtn');
+    const scrollRightBtn = document.getElementById('scrollRightBtn');
+    
+    if (scrollLeftBtn && scrollRightBtn) {
+        scrollLeftBtn.addEventListener('click', () => {
+            if (window.presenceHistory) {
+                window.presenceHistory.scrollLeft();
+            }
+        });
+        
+        scrollRightBtn.addEventListener('click', () => {
+            if (window.presenceHistory) {
+                window.presenceHistory.scrollRight();
+            }
+        });
     }
 }
 
