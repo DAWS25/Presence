@@ -23,6 +23,11 @@ cp -a $WEB_DIR/src/* $WEB_DIR/target/
 # Copy node_modules to target (required for Bootstrap and face-api.js)
 cp -a $WEB_DIR/node_modules $WEB_DIR/target/
 
+# Replace environment variables in HTML files
+echo "🔧 Substituting environment variables..."
+export GOOGLE_CLIENT_ID="${GOOGLE_CLIENT_ID:-}"
+envsubst '$GOOGLE_CLIENT_ID' < $WEB_DIR/src/app/app.html > $WEB_DIR/target/app/app.html
+
 echo "🔧 Building SAM API function..."
 pushd $DIR/presence_sam
 sam build --use-container 

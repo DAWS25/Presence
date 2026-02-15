@@ -4,6 +4,7 @@ Receives HTTP requests, wraps them in CloudFront origin-request events,
 invokes the Lambda function, and returns the response as HTTP.
 """
 
+import base64
 import json
 import logging
 from http.server import HTTPServer, BaseHTTPRequestHandler
@@ -27,12 +28,27 @@ lambda_client = boto3.client(
 )
 
 
-def _build_cf_event(method, path, headers, querystring=""):
+def _build_cf_event(method, path, headers, querystring="", body=None):
     """Build a CloudFront origin-request event from HTTP request data."""
     cf_headers = {}
     for key, value in headers.items():
         lower_key = key.lower()
         cf_headers[lower_key] = [{"key": key, "value": value}]
+
+    request = {
+        "uri": path,
+        "method": method,
+        "headers": cf_headers,
+        "querystring": querystring,
+    }
+
+    if body is not None:
+        request["body"] = {
+            "inputTruncated": False,
+            "action": "read-only",
+            "encoding": "base64",
+            "data": base64.b64encode(body).decode("ascii"),
+        }
 
     return {
         "Records": [
@@ -42,12 +58,7 @@ def _build_cf_event(method, path, headers, querystring=""):
                         "distributionId": "LOCAL",
                         "eventType": "origin-request",
                     },
-                    "request": {
-                        "uri": path,
-                        "method": method,
-                        "headers": cf_headers,
-                        "querystring": querystring,
-                    },
+                    "request": request,
                 }
             }
         ]
@@ -58,11 +69,18 @@ class EdgeAdapterHandler(BaseHTTPRequestHandler):
     def _handle(self):
         parsed = urlparse(self.path)
         querystring = parsed.query
+
+        body = None
+        content_length = int(self.headers.get("Content-Length", 0))
+        if content_length > 0:
+            body = self.rfile.read(content_length)
+
         cf_event = _build_cf_event(
             method=self.command,
             path=parsed.path,
             headers=dict(self.headers),
             querystring=querystring,
+            body=body,
         )
 
         try:
