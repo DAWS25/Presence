@@ -2,9 +2,7 @@
 set -ex
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DIR="$(dirname "$SCRIPT_DIR")"
-
-log() { echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] $*"; }
-log "script [$0] started"
+echo "script [$0] started"
 # 
 
 # Validate required environment variables
@@ -24,7 +22,7 @@ if [ -z "$TARGET_ACCOUNT_ID" ]; then
 fi
 
 # Build
-log "🔨 Building environment for $ENV_ID..."
+echo "🔨 Building environment for $ENV_ID..."
 source "$SCRIPT_DIR/env-build.sh"
 
 CURRENT_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
@@ -76,7 +74,6 @@ else
     echo "✓ CERTIFICATE_ARN already defined: $CERTIFICATE_ARN"
 fi
 
-log "Deploying web-resources stack..."
 aws cloudformation deploy \
     --stack-name $ENV_ID-web-resources \
     --template-file $DIR/presence_cform/web-resources.cform.yaml \
@@ -88,16 +85,10 @@ BUCKET_NAME=$(aws cloudformation describe-stacks \
     --query "Stacks[0].Outputs[?OutputKey=='ResourcesBucketName'].OutputValue" \
     --output text)    
 
-log "S3 sync to $BUCKET_NAME..."
 aws s3 sync $DIR/presence_web/target/ s3://$BUCKET_NAME/ --delete
-log "S3 sync complete"
-
-# Tenant ID for cross-stack references to shared account-level resources (VPC, DB)
-TENANT_ID=${TENANT_ID:-"presence-env"}
-log "Using TENANT_ID=$TENANT_ID for cross-stack DB references"
 
 # Deploy SAM API function
-log "Deploying SAM API function..."
+echo "Deploying SAM API function..."
 SAM_BUILD_TEMPLATE="$DIR/presence_sam/.aws-sam/build/template.yaml"
 if [ ! -f "$SAM_BUILD_TEMPLATE" ]; then
     echo "❌ SAM build output not found: $SAM_BUILD_TEMPLATE"
@@ -109,23 +100,61 @@ fi
 APP_VERSION=$(date -u +"%Y%m%d-%H%M%S")
 GIT_COMMIT=$(git -C "$DIR" rev-parse --short HEAD 2>/dev/null || echo "unknown")
 
-log "📦 Deploying version: $APP_VERSION (commit: $GIT_COMMIT)"
+echo "📦 Deploying version: $APP_VERSION (commit: $GIT_COMMIT)"
 
 pushd $DIR/presence_sam
 sam deploy \
     --stack-name $ENV_ID-presence-api \
     --parameter-overrides \
         EnvId=$ENV_ID \
-        TenantId=$TENANT_ID \
         AppVersion=$APP_VERSION \
         GitCommit=$GIT_COMMIT \
     --capabilities CAPABILITY_IAM \
     --no-fail-on-empty-changeset \
     --no-confirm-changeset 
 popd
-log "✓ SAM API function deployed"
+echo "✓ SAM API function deployed"
 
-log "Deploying web-distribution stack..."
+# Deploy Lambda@Edge auth function (must be us-east-1)
+echo "🔧 Deploying Lambda@Edge auth function..."
+EDGE_BUILD_TEMPLATE="$DIR/presence_edge_auth/.aws-sam/build/template.yaml"
+if [ ! -f "$EDGE_BUILD_TEMPLATE" ]; then
+    echo "❌ Lambda@Edge auth build output not found: $EDGE_BUILD_TEMPLATE"
+    echo "   Run $SCRIPT_DIR/env-build.sh first to generate build artifacts."
+    exit 1
+fi
+
+pushd $DIR/presence_edge_auth
+sam deploy \
+    --stack-name $ENV_ID-presence-edge \
+    --region us-east-1 \
+    --parameter-overrides EnvId=$ENV_ID \
+    --capabilities CAPABILITY_IAM \
+    --no-fail-on-empty-changeset \
+    --no-confirm-changeset
+popd
+echo "✓ Lambda@Edge auth function deployed"
+
+# Deploy Lambda@Edge CORS function (must be us-east-1)
+echo "🔧 Deploying Lambda@Edge CORS function..."
+EDGE_CORS_BUILD_TEMPLATE="$DIR/presence_edge_cors/.aws-sam/build/template.yaml"
+if [ ! -f "$EDGE_CORS_BUILD_TEMPLATE" ]; then
+    echo "❌ Lambda@Edge CORS build output not found: $EDGE_CORS_BUILD_TEMPLATE"
+    echo "   Run $SCRIPT_DIR/env-build.sh first to generate build artifacts."
+    exit 1
+fi
+
+pushd $DIR/presence_edge_cors
+sam deploy \
+    --stack-name $ENV_ID-presence-edge-cors \
+    --region us-east-1 \
+    --parameter-overrides EnvId=$ENV_ID \
+    --capabilities CAPABILITY_IAM \
+    --no-fail-on-empty-changeset \
+    --no-confirm-changeset
+popd
+echo "✓ Lambda@Edge CORS function deployed"
+
 aws cloudformation deploy \
     --stack-name $ENV_ID-web-distribution \
     --template-file $DIR/presence_cform/web-distribution.cform.yaml \
@@ -135,7 +164,6 @@ aws cloudformation deploy \
         CertificateArn="$CERTIFICATE_ARN" \
     --no-fail-on-empty-changeset
 
-log "Deploying web-records stack..."
 aws cloudformation deploy \
     --stack-name $ENV_ID-web-records \
     --template-file $DIR/presence_cform/web-records.cform.yaml \
@@ -156,46 +184,36 @@ DISTRIBUTION_URL=$(aws cloudformation describe-stacks \
     --query "Stacks[0].Outputs[?OutputKey=='DistributionDomainName'].OutputValue" \
     --output text)
 
-# Invalidate CloudFront cache to ensure new content is served
-log "🚀 Invalidating CloudFront cache..."
-aws cloudfront create-invalidation \
-    --distribution-id "$DISTRIBUTION_ID" \
-    --paths "/*" 
+# Wait for CloudFront distribution to be deployed
+echo "⏳ Waiting for CloudFront distribution to be deployed..."
+aws cloudformation wait stack-update-complete --stack-name $ENV_ID-web-distribution 2>/dev/null || true
 
-if [ "${GITOPS_WAIT_DISTRIBUTION_READY}" = "true" ]; then
-    # Wait for CloudFront distribution to be deployed
-    echo "⏳ Waiting for CloudFront distribution to be deployed..."
-    aws cloudformation wait stack-update-complete --stack-name $ENV_ID-web-distribution 2>/dev/null || true
+MAX_WAIT=600  # 10 minutes
+WAIT_INTERVAL=30
+elapsed=0
 
-    MAX_WAIT=600  # 10 minutes
-    WAIT_INTERVAL=30
-    elapsed=0
-
-    while [ $elapsed -lt $MAX_WAIT ]; do
-        DIST_STATUS=$(aws cloudfront get-distribution \
-            --id "$DISTRIBUTION_ID" \
-            --query "Distribution.Status" \
-            --output text 2>/dev/null || echo "Unknown")
-        
-        if [ "$DIST_STATUS" = "Deployed" ]; then
-            echo "✓ Distribution is deployed"
-            break
-        fi
-        
-        echo "  Distribution status: $DIST_STATUS (waiting ${elapsed}s/${MAX_WAIT}s)"
-        sleep $WAIT_INTERVAL
-        elapsed=$((elapsed + WAIT_INTERVAL))
-    done
-
-    if [ "$DIST_STATUS" != "Deployed" ]; then
-        echo "⚠️  Warning: Distribution not fully deployed after ${MAX_WAIT}s"
+while [ $elapsed -lt $MAX_WAIT ]; do
+    DIST_STATUS=$(aws cloudfront get-distribution \
+        --id "$DISTRIBUTION_ID" \
+        --query "Distribution.Status" \
+        --output text 2>/dev/null || echo "Unknown")
+    
+    if [ "$DIST_STATUS" = "Deployed" ]; then
+        echo "✓ Distribution is deployed"
+        break
     fi
-else
-    echo "⏩ Skipping CloudFront distribution wait (GITOPS_WAIT_DISTRIBUTION_READY not set to true)"
+    
+    echo "  Distribution status: $DIST_STATUS (waiting ${elapsed}s/${MAX_WAIT}s)"
+    sleep $WAIT_INTERVAL
+    elapsed=$((elapsed + WAIT_INTERVAL))
+done
+
+if [ "$DIST_STATUS" != "Deployed" ]; then
+    echo "⚠️  Warning: Distribution not fully deployed after ${MAX_WAIT}s"
 fi
 
 # Health check
-log "🏥 Running health check on https://$DOMAIN_NAME/fn/__hc"
+echo "🏥 Running health check on https://$DOMAIN_NAME/fn/__hc"
 HEALTH_CHECK_URL="https://$DOMAIN_NAME/fn/__hc"
 HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_CHECK_URL" --connect-timeout 10 --max-time 30 || echo "000")
 
@@ -211,7 +229,7 @@ else
 fi
 
 echo ""
-log "✅ Deployment to $ENV_ID completed!"
-log "🌐 Distribution URL: https://$DISTRIBUTION_URL"
-log "🌐 Custom Domain: https://$DOMAIN_NAME"
-log "🏥 Health Status: $HEALTH_STATUS"
+echo "✅ Deployment to $ENV_ID completed!"
+echo "🌐 Distribution URL: https://$DISTRIBUTION_URL"
+echo "🌐 Custom Domain: https://$DOMAIN_NAME"
+echo "🏥 Health Status: $HEALTH_STATUS"

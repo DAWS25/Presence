@@ -34,6 +34,11 @@ cp -a $WEB_DIR/src/* $WEB_DIR/target/
 # Copy node_modules to target (required for Bootstrap and face-api.js)
 cp -a $WEB_DIR/node_modules $WEB_DIR/target/
 
+# Replace environment variables in HTML files
+echo "🔧 Substituting environment variables..."
+export GOOGLE_CLIENT_ID="${GOOGLE_CLIENT_ID:-}"
+envsubst '$GOOGLE_CLIENT_ID' < $WEB_DIR/src/app/app.html > $WEB_DIR/target/app/app.html
+
 restart_proxy
 
 # Iniciar livereload server com suporte a mudanças de arquivo
@@ -63,6 +68,9 @@ def rebuild():
         if os.path.exists(node_modules_target):
             shutil.rmtree(node_modules_target)
         shutil.copytree(node_modules_src, node_modules_target)
+
+    # Substitute environment variables in app.html
+    os.system("envsubst '\$GOOGLE_CLIENT_ID' < '$WEB_DIR/src/app/app.html' > '$WEB_DIR/target/app/app.html'")
 
     os.system("docker restart proxy >/dev/null 2>&1 || true")
     

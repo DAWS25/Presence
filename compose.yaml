@@ -14,8 +14,10 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
+      - 10080:10080
       - 10443:10443
     expose:
+      - 10080
       - 10443
 
   database:

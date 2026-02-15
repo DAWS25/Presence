@@ -53,6 +53,28 @@ BUCKET_NAME=$($AWS_CLI cloudformation describe-stacks \
 
 $AWS_CLI s3 sync $DIR/presence_web/target/ s3://$BUCKET_NAME/ --delete
 
+# Deploy Lambda@Edge auth function
+echo "🔧 Deploying Lambda@Edge auth function..."
+pushd $DIR/presence_edge_auth
+$AWS_CLI cloudformation deploy \
+    --stack-name $ENV_ID-presence-edge \
+    --template-file $DIR/presence_edge_auth/.aws-sam/build/template.yaml \
+    --parameter-overrides EnvId="$ENV_ID" \
+    --capabilities CAPABILITY_IAM \
+    --no-fail-on-empty-changeset
+popd
+
+# Deploy Lambda@Edge CORS function
+echo "🔧 Deploying Lambda@Edge CORS function..."
+pushd $DIR/presence_edge_cors
+$AWS_CLI cloudformation deploy \
+    --stack-name $ENV_ID-presence-edge-cors \
+    --template-file $DIR/presence_edge_cors/.aws-sam/build/template.yaml \
+    --parameter-overrides EnvId="$ENV_ID" \
+    --capabilities CAPABILITY_IAM \
+    --no-fail-on-empty-changeset
+popd
+
 $AWS_CLI cloudformation deploy \
     --stack-name $ENV_ID-web-distribution \
     --template-file $DIR/presence_cform/web-distribution.cform.yaml \

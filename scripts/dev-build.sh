@@ -23,6 +23,11 @@ cp -a $WEB_DIR/src/* $WEB_DIR/target/
 # Copy node_modules to target (required for Bootstrap and face-api.js)
 cp -a $WEB_DIR/node_modules $WEB_DIR/target/
 
+# Replace environment variables in HTML files
+echo "🔧 Substituting environment variables..."
+export GOOGLE_CLIENT_ID="${GOOGLE_CLIENT_ID:-}"
+envsubst '$GOOGLE_CLIENT_ID' < $WEB_DIR/src/app/app.html > $WEB_DIR/target/app/app.html
+
 # Build SAM application
 echo "📦 Building SAM application..."
 pushd "$DIR/presence_sam"
@@ -31,6 +36,32 @@ if command -v sam >/dev/null 2>&1; then
   sam build --parameter-overrides "LambdaArchitecture=x86_64" --template "$TEMPLATE_PATH"
 elif command -v devbox >/dev/null 2>&1; then
   cd "$DIR/presence_sam" && devbox run -- sam build --parameter-overrides "LambdaArchitecture=x86_64" --template "$TEMPLATE_PATH"
+else
+  echo "Error: sam not found. Install AWS SAM CLI or use devbox." >&2
+  exit 1
+fi
+popd
+
+# Build Lambda@Edge auth function
+echo "📦 Building Lambda@Edge auth function..."
+pushd "$DIR/presence_edge_auth"
+if command -v sam >/dev/null 2>&1; then
+  sam build
+elif command -v devbox >/dev/null 2>&1; then
+  devbox run -- sam build
+else
+  echo "Error: sam not found. Install AWS SAM CLI or use devbox." >&2
+  exit 1
+fi
+popd
+
+# Build Lambda@Edge CORS function
+echo "📦 Building Lambda@Edge CORS function..."
+pushd "$DIR/presence_edge_cors"
+if command -v sam >/dev/null 2>&1; then
+  sam build
+elif command -v devbox >/dev/null 2>&1; then
+  devbox run -- sam build
 else
   echo "Error: sam not found. Install AWS SAM CLI or use devbox." >&2
   exit 1

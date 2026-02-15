@@ -68,7 +68,39 @@ Resources:
             QueryString: false
             Cookies:
               Forward: none
+          LambdaFunctionAssociations:
+            - EventType: origin-response
+              LambdaFunctionARN:
+                Fn::ImportValue: !Sub "${EnvId}-EdgeCorsFunctionVersion"
         CacheBehaviors:
+          - PathPattern: "/edge/*"
+            TargetOriginId: S3Origin
+            ViewerProtocolPolicy: https-only
+            AllowedMethods:
+              - GET
+              - HEAD
+              - OPTIONS
+              - PUT
+              - POST
+              - PATCH
+              - DELETE
+            CachedMethods:
+              - GET
+              - HEAD
+            Compress: true
+            ForwardedValues:
+              QueryString: true
+              Headers:
+                - Content-Type
+              Cookies:
+                Forward: none
+            LambdaFunctionAssociations:
+              - EventType: origin-request
+                LambdaFunctionARN:
+                  Fn::ImportValue: !Sub "${EnvId}-EdgeFunctionVersion"
+              - EventType: origin-response
+                LambdaFunctionARN:
+                  Fn::ImportValue: !Sub "${EnvId}-EdgeCorsFunctionVersion"
           - PathPattern: "/fn/*"
             TargetOriginId: ApiOrigin
             ViewerProtocolPolicy: https-only

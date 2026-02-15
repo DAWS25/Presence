@@ -11,45 +11,31 @@
     <!-- Custom CSS -->
     <link href="styles.css" rel="stylesheet">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='8' ry='8' fill='%2332302f'/%3E%3Ccircle cx='22' cy='26' r='6' fill='%237daea3'/%3E%3Ccircle cx='42' cy='26' r='6' fill='%237daea3'/%3E%3Cpath d='M18 42c4 4 24 4 28 0' stroke='%23a9b665' stroke-width='4' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+
+    <!-- Google Sign-In -->
+    <meta name="google-client-id" content="$GOOGLE_CLIENT_ID">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body class="hud-only">
     <div class="app-container">
-        <!-- Navigation Tabs -->
-        <nav class="tab-nav">
-            <ul class="nav nav-tabs" id="mainTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="camera-tab" data-bs-toggle="tab" data-bs-target="#camera" type="button" role="tab" aria-controls="camera" aria-selected="true" data-i18n="nav.camera">
-                        Camera
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="presenca-tab" data-bs-toggle="tab" data-bs-target="#presenca" type="button" role="tab" aria-controls="presenca" aria-selected="false" data-i18n="nav.presenca">
-                        Presença
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="configuracoes-tab" data-bs-toggle="tab" data-bs-target="#configuracoes" type="button" role="tab" aria-controls="configuracoes" aria-selected="false" data-i18n="nav.config">
-                        Configurações
-                    </button>
-                </li>
-            </ul>
-        </nav>
-
-        <!-- Tab Content -->
-        <div class="tab-content" id="mainTabContent">
-            <!-- Camera Tab -->
-            <div class="tab-pane fade show active" id="camera" role="tabpanel" aria-labelledby="camera-tab">
-                <div class="camera-view">
-                    <video id="video" autoplay playsinline muted></video>
-                    <canvas id="canvas"></canvas>
-                    <div class="hud">
-                        <div class="hud-top">
-                            <div class="hud-brand">
-                                <div class="brand-title" data-i18n="hud.title">Presence</div>
+        <!-- Main Screen -->
+        <div class="screen main-screen" id="mainScreen">
+            <div class="camera-view">
+                <video id="video" autoplay playsinline muted></video>
+                <canvas id="canvas"></canvas>
+                <div class="hud">
+                    <div class="hud-top">
+                        <div class="hud-brand">
+                            <div class="brand-title" data-i18n="hud.title">Presence</div>
+                            <div class="hud-brand-meta">
+                                <a class="share-plid" id="sharePlid" href="#"></a>
+                                <div id="shareQr" class="share-qr"></div>
                             </div>
-                            <div class="hud-pill is-hidden" aria-hidden="true">
-                                <span class="status-value text-muted" id="statusMessage" data-i18n="hud.status.ready">✓ Pronto</span>
-                            </div>
+                        </div>
+                        <div class="hud-user" id="hudUser">
+                        </div>
+                        <div class="hud-pill is-hidden" aria-hidden="true">
+                            <span class="status-value text-muted" id="statusMessage" data-i18n="hud.status.ready">✓ Pronto</span>
                         </div>
                         <div class="hud-metrics is-hidden" aria-hidden="true">
                             <div class="hud-metric">
@@ -66,98 +52,36 @@
                             </div>
                         </div>
                     </div>
-                    <aside class="events-column" aria-label="Eventos, configuracoes e compartilhamento">
-                        <section class="events-panel events-panel-primary" aria-label="Eventos">
-                            <div class="events-header" data-i18n="events.title">Eventos</div>
-                            <div class="events-list" id="presenceCards">
-                                <div class="events-empty" data-i18n="events.empty">Sem deteccoes</div>
-                            </div>
-                        </section>
-                        <section class="events-panel events-panel-secondary share-panel" aria-label="Compartilhar">
-                            <div class="events-header" data-i18n="share.title">Compartilhar</div>
-                            <div class="share-list">
-                                <a class="share-plid" id="sharePlid" href="#"></a>
-                                <div id="shareQr" class="share-qr"></div>
-                            </div>
-                        </section>
-                    </aside>
                 </div>
+                <aside class="events-column" aria-label="Eventos, configuracoes e compartilhamento">
+                    <button class="events-scroll-btn events-scroll-left" id="scrollLeftBtn" aria-label="Scroll eventos para esquerda">
+                        <span>‹</span>
+                    </button>
+                    <section class="events-panel events-panel-primary" aria-label="Eventos">
+                        <div class="events-list" id="presenceCards"></div>
+                    </section>
+                    <button class="events-scroll-btn events-scroll-right" id="scrollRightBtn" aria-label="Scroll eventos para direita">
+                        <span>›</span>
+                    </button>
+                </aside>
             </div>
+        </div>
 
-            <!-- Presença Tab -->
-            <div class="tab-pane fade" id="presenca" role="tabpanel" aria-labelledby="presenca-tab">
-                <div class="presenca-container">
-                    <div class="table-responsive">
-                        <table class="table table-sm">
-                            <thead>
-                                <tr>
-                                    <th data-i18n="table.person">Pessoa</th>
-                                    <th data-i18n="table.events">Eventos</th>
-                                    <th data-i18n="table.last">Último</th>
-                                    <th data-i18n="table.image">Imagem</th>
-                                </tr>
-                            </thead>
-                            <tbody id="presenceBody">
-                                <!-- Preenchido dinamicamente -->
-                            </tbody>
-                        </table>
-                    </div>
+        <!-- Detail Screen -->
+        <div class="screen detail-screen is-hidden" id="detailScreen">
+            <div class="detail-view">
+                <div class="detail-header">
+                    <button class="detail-close" id="detailCloseBtn" aria-label="Fechar detail">
+                        ✕
+                    </button>
                 </div>
-            </div>
-
-            <!-- Configurações Tab -->
-            <div class="tab-pane fade" id="configuracoes" role="tabpanel" aria-labelledby="configuracoes-tab">
-                <div class="config-container">
-                    <div class="config-section">
-                        <h5 data-i18n="config.title">Configurações da App</h5>
-                        <div class="mb-3">
-                            <label for="minConfidence" class="form-label" data-i18n="config.minConfidence">Confiança mínima</label>
-                            <div class="d-flex align-items-center gap-2">
-                                <input type="range" class="form-range" id="minConfidence" min="0" max="100" value="50">
-                                <span id="confidenceValue">50%</span>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="detectionInterval" class="form-label" data-i18n="config.interval">Intervalo de detecção (ms)</label>
-                            <input type="number" class="form-control" id="detectionInterval" value="500" min="100" step="50">
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="enableLogging">
-                            <label class="form-check-label" for="enableLogging" data-i18n="config.enableLogging">
-                                Ativar logging
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="config-section mt-4">
-                        <h5 data-i18n="about.title">Sobre</h5>
-                        <p>
-                            <strong data-i18n="about.version">Versão:</strong> <span> - </span>
-                        </p>
-                        <p>
-                            <strong data-i18n="about.status">Status:</strong> <span id="appStatus">-</span>
-                        </p>
-                    </div>
+                <div class="detail-content" id="detailContent">
+                    <!-- Preenchido dinamicamente -->
                 </div>
             </div>
         </div>
 
-        <!-- Status Bar -->
-        <div class="status-bar">
-            <div class="status-left">
-                <span class="status-value text-muted">✓ Pronto</span>
-            </div>
-            <div class="status-right">
-                <div class="status-item">
-                    <span class="status-label">Faces:</span>
-                    <span class="status-value">0</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">Versão:</span>
-                    <span class="status-value">-</span>
-                </div>
-            </div>
-        </div>
+        
     </div>
 
     <!-- Bootstrap JS -->
@@ -189,6 +113,12 @@
 
     <!-- QR code generator -->
     <script src="js/qrcode.min.js"></script>
+
+    <!-- Screen Manager -->
+    <script src="js/presence_ui/screen.js"></script>
+
+    <!-- Google Sign-In -->
+    <script src="js/presence_ui/google_signin.js"></script>
 
     <!-- Display Place ID -->
     <script src="js/presence_ui/app_init.js"></script>

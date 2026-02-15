@@ -41,7 +41,8 @@ class PresenceApp {
         if (window.presenceHistory && window.i18n) {
             window.presenceHistory.addWelcomeMessage(
                 window.i18n.t('init.welcome.title'),
-                window.i18n.t('init.welcome.message')
+                window.i18n.t('init.welcome.message'),
+                '👋'
             );
         }
         
@@ -68,7 +69,8 @@ class PresenceApp {
             if (window.presenceHistory && window.i18n) {
                 window.presenceHistory.addWelcomeMessage(
                     window.i18n.t('init.faceapi.title'),
-                    window.i18n.t('init.faceapi.message')
+                    window.i18n.t('init.faceapi.message'),
+                    '🧠'
                 );
             }
             
