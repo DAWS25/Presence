@@ -15,16 +15,17 @@
   "forwardPorts": [
     80,
     443,
+    1080,
     10443,
     4566,
     8080, 3000
   ],
 
   "portsAttributes": {
-    "80": {
+    "10080": {
       "visibility": "public"
     },
-    "443": {
+    "10443": {
       "visibility": "public"
     }
   },
