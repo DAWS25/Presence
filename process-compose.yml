@@ -11,6 +11,10 @@ processes:
     command: ./scripts/dev-edge-hc-start.sh
   1-edge-hc-adapter:
     command: ./scripts/dev-edge-hc-adapter-start.sh
+  1-edge-root:
+    command: ./scripts/dev-edge-root-start.sh
+  1-edge-root-adapter:
+    command: ./scripts/dev-edge-root-adapter-start.sh
   1-sam:
     command: ./scripts/dev-sam-start.sh
   1-web:

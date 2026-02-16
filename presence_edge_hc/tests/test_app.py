@@ -42,7 +42,7 @@ class TestEdgeHcHandler:
         body = json.loads(result["body"])
         assert body["health_status"] == "OK"
         assert body["edge"]["health_status"] == "OK"
-        assert body["origin"]["health_status"] == "OK"
+        assert body["fn"]["health_status"] == "OK"
 
     @patch("presence_edge_hc.app._fetch_origin_health")
     def test_hc_returns_degraded_when_origin_unhealthy(self, mock_fetch):
@@ -57,7 +57,7 @@ class TestEdgeHcHandler:
         body = json.loads(result["body"])
         assert body["health_status"] == "DEGRADED"
         assert body["edge"]["health_status"] == "OK"
-        assert body["origin"]["health_status"] == "DEGRADED"
+        assert body["fn"]["health_status"] == "DEGRADED"
 
     @patch("presence_edge_hc.app._fetch_origin_health")
     def test_hc_returns_degraded_when_origin_errors(self, mock_fetch):
@@ -68,7 +68,7 @@ class TestEdgeHcHandler:
         assert result["status"] == "500"
         body = json.loads(result["body"])
         assert body["health_status"] == "DEGRADED"
-        assert body["origin"]["error"] == "connection refused"
+        assert body["fn"]["error"] == "connection refused"
 
     def test_non_hc_path_returns_400(self):
         event = _make_cf_event("/other/page")

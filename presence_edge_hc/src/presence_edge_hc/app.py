@@ -57,16 +57,16 @@ def handler(event, context):
 
     if uri == "/edge/hc/ready":
         host = _get_host(request)
-        origin_health = _fetch_origin_health(host) if host else {"error": "no host header"}
+        fn_health = _fetch_origin_health(host) if host else {"error": "no host header"}
 
-        origin_status = origin_health.get("health_status", "UNKNOWN")
+        fn_status = fn_health.get("health_status", "UNKNOWN")
         edge_status = "OK"
-        overall = "OK" if edge_status == "OK" and origin_status == "OK" else "DEGRADED"
+        overall = "OK" if edge_status == "OK" and fn_status == "OK" else "DEGRADED"
 
         body = {
             "health_status": overall,
             "edge": {"health_status": edge_status},
-            "origin": origin_health,
+            "fn": fn_health,
         }
 
         status_code = "200" if overall == "OK" else "500"

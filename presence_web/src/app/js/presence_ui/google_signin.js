@@ -102,5 +102,16 @@
         });
     }
 
-    window.addEventListener('load', init);
+    /**
+     * Wait until the welcome message has been added, then initialise.
+     */
+    function initWhenReady() {
+        if (window.presenceHistory && window.presenceHistory.events.length > 0) {
+            init();
+        } else {
+            setTimeout(initWhenReady, 50);
+        }
+    }
+
+    window.addEventListener('load', initWhenReady);
 })();

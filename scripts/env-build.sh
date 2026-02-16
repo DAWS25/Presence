@@ -54,4 +54,9 @@ pushd $DIR/presence_edge_hc
 sam build
 popd
 
+echo "🔧 Building Lambda@Edge root redirect function..."
+pushd $DIR/presence_edge_root
+sam build
+popd
+
 echo "Done"
