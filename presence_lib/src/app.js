@@ -52,9 +52,6 @@ class PresenceApp {
             );
         }
         
-        // Check authentication status
-        this.checkAuthStatus();
-        
         try {
             if (typeof faceapi === 'undefined') {
                 throw new Error('face-api.js não carregado');
