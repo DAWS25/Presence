@@ -96,6 +96,7 @@ Resources:
                 Forward: none
             LambdaFunctionAssociations:
               - EventType: origin-request
+                IncludeBody: true
                 LambdaFunctionARN:
                   Fn::ImportValue: !Sub "${EnvId}-EdgeFunctionVersion"
               - EventType: origin-response
