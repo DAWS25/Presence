@@ -9,11 +9,11 @@ from sqlmodel import SQLModel, create_engine, Session, text
 logger = logging.getLogger(__name__)
 
 # Build connection URL from environment variables (matching compose.yaml defaults)
-DB_USER = os.getenv("DB_USER", "postgres")
-DB_HOST = os.getenv("DB_HOST", "localhost")
-DB_PORT = os.getenv("DB_PORT", "5432")
-DB_NAME = os.getenv("DB_NAME", "presence")
-DB_IAM_AUTH = os.getenv("DB_IAM_AUTH", "false").lower() == "true"
+DB_USER = os.getenv("DB_USER") or "postgres"
+DB_HOST = os.getenv("DB_HOST") or "localhost"
+DB_PORT = os.getenv("DB_PORT") or "5432"
+DB_NAME = os.getenv("DB_NAME") or "presence"
+DB_IAM_AUTH = (os.getenv("DB_IAM_AUTH") or "false").lower() == "true"
 
 
 def _get_engine():

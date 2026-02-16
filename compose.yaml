@@ -19,6 +19,8 @@ services:
     expose:
       - 10080
       - 10443
+    networks:
+      - devbox_net
 
   database:
     image: postgres:latest
@@ -39,3 +41,9 @@ services:
       - 5432:5432
     expose:
       - 5432
+    networks:
+      - devbox_net
+
+networks:
+  devbox_net:
+    name: devbox_net

@@ -33,6 +33,9 @@ node_modules
 
 .aws-sam
 
+# Generated local env overrides
+.env-vars.json
+
 *.log
 *.log.*
 
