@@ -39,9 +39,15 @@ class PresenceApp {
         
         // Show welcome message as soon as possible
         if (window.presenceHistory && window.i18n) {
+            const urlParams = new URLSearchParams(window.location.search);
+            const place = urlParams.get('place');
+            let message = window.i18n.t('init.welcome.message');
+            if (place) {
+                message += ` <a href="/${place}" target="_top" class="event-link">${place}</a>`;
+            }
             window.presenceHistory.addWelcomeMessage(
                 window.i18n.t('init.welcome.title'),
-                window.i18n.t('init.welcome.message'),
+                message,
                 '👋'
             );
         }

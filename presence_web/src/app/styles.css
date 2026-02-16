@@ -137,6 +137,7 @@ html, body {
     flex-direction: column;
     gap: 0.5rem;
     align-items: flex-start;
+    pointer-events: auto;
 }
 
 .brand-sub {
@@ -394,6 +395,19 @@ html, body {
     font-size: 0.7rem;
 }
 
+.event-link {
+    color: var(--fg1);
+    text-decoration: none;
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: 600;
+    pointer-events: auto;
+}
+
+.event-link:hover {
+    text-decoration: underline;
+    opacity: 0.8;
+}
+
 /* ========================================
    SCREEN SYSTEM
    ======================================== */
@@ -611,6 +625,13 @@ html, body {
 
 .share-plid:hover {
     opacity: 0.8;
+    text-decoration: underline;
+}
+
+.share-qr-link {
+    display: inline-block;
+    text-decoration: none;
+    cursor: pointer;
 }
 
 .share-qr {

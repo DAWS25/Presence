@@ -12,14 +12,20 @@ function initApp() {
     const place = urlParams.get('place');
     const plidEl = document.getElementById('sharePlid');
     if (plidEl && place) {
-        const placeUrl = `/fn/place/${place}`;
+        const placeUrl = `/${place}`;
         plidEl.textContent = place;
         plidEl.href = placeUrl;
+        plidEl.target = '_top';
     }
 
     const qrEl = document.getElementById('shareQr');
+    const qrLink = document.getElementById('shareQrLink');
     if (qrEl && place && window.QRCode) {
-        const placeUrl = window.location.origin + `/fn/place/${place}`;
+        const placeUrl = window.location.origin + `/${place}`;
+        if (qrLink) {
+            qrLink.href = `/${place}`;
+            qrLink.target = '_top';
+        }
         try {
             // Clear existing content
             qrEl.innerHTML = '';
