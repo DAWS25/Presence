@@ -128,6 +128,7 @@ pushd $DIR/presence_edge_auth
 sam deploy \
     --stack-name $ENV_ID-presence-edge \
     --region us-east-1 \
+    --resolve-s3 \
     --parameter-overrides EnvId=$ENV_ID \
     --capabilities CAPABILITY_IAM \
     --no-fail-on-empty-changeset \
@@ -148,6 +149,7 @@ pushd $DIR/presence_edge_cors
 sam deploy \
     --stack-name $ENV_ID-presence-edge-cors \
     --region us-east-1 \
+    --resolve-s3 \
     --parameter-overrides EnvId=$ENV_ID \
     --capabilities CAPABILITY_IAM \
     --no-fail-on-empty-changeset \
