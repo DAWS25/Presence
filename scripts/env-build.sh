@@ -30,7 +30,7 @@ envsubst '$GOOGLE_CLIENT_ID' < $WEB_DIR/src/app/app.html > $WEB_DIR/target/app/a
 
 echo "🔧 Building SAM API function..."
 pushd $DIR/presence_sam
-sam build --use-container 
+sam build
 popd
 
 echo "🔧 Building Lambda@Edge auth function..."
