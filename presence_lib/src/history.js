@@ -360,7 +360,6 @@ class PresenceHistory {
             <div class="event-detail">
                 <div class="event-detail-header">
                     <div class="event-title">${t('events.detail.title')}</div>
-                    <button class="event-detail-close" aria-label="${t('events.detail.close')}">&times;</button>
                 </div>
                 ${imgHtml}
                 <div class="event-detail-info">
@@ -385,11 +384,6 @@ class PresenceHistory {
             window.screenManager.setDetailContent(detailHtml);
         } else {
             detailContent.innerHTML = detailHtml;
-        }
-
-        const closeBtn = detailContent.querySelector('.event-detail-close');
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => this.closeDetail());
         }
 
         const saveBtn = detailContent.querySelector('#eventSaveBtn');
