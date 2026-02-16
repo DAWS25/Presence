@@ -20,6 +20,8 @@ npm-debug.log*
 
 # Cache
 .cache/
+__pycache__/
+*.pyc
 
 #
 .devbox

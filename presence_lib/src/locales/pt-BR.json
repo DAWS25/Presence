@@ -35,5 +35,7 @@
     "events.detail.faces": "Faces",
     "events.detail.time": "Hora",
     "events.detail.date": "Data",
-    "events.detail.save": "Salvar"
+    "events.detail.save": "Salvar",
+    "auth.session.title": "Autenticado",
+    "auth.session.message": "Sessao ja ativa"
 }

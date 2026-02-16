@@ -35,5 +35,7 @@
     "events.detail.faces": "Faces",
     "events.detail.time": "Time",
     "events.detail.date": "Date",
-    "events.detail.save": "Save"
+    "events.detail.save": "Save",
+    "auth.session.title": "Authenticated",
+    "auth.session.message": "Session already active"
 }

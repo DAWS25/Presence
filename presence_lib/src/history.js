@@ -1,6 +1,7 @@
 /* ========================================
     PRESENCE HISTORY
-    In-memory detections (FIFO 333)
+    In-memory detections (FIFO 333 people)
+    Events: unlimited storage, display latest 10
     ======================================== */
 
 class PresenceHistory {
@@ -10,9 +11,8 @@ class PresenceHistory {
     constructor(maxSize = 333) {
         this.maxSize = maxSize; // max pessoas
         this.people = new Map(); // key -> person
-        this.events = []; // eventos recentes
-        this.maxEvents = 100;
-        this.displayCount = 100; // max visible events
+        this.events = []; // all events kept in memory for face recognition
+        this.displayCount = 10; // max visible events in panel
         this.seq = 0;
         this.tableBody = document.getElementById('presenceBody');
         this.cardsEl = document.getElementById('presenceCards');
@@ -54,9 +54,6 @@ class PresenceHistory {
             faceCount: typeof data?.faceCount === 'number' ? data.faceCount : boxes.length,
             personName: knownName,
         });
-        if (this.events.length > this.maxEvents) {
-            this.events.length = this.maxEvents;
-        }
         this.render();
     }
 
@@ -223,9 +220,6 @@ class PresenceHistory {
             icon: icon || 'ℹ️',
         };
         this.events.unshift(msgEvent);
-        if (this.events.length > this.maxEvents) {
-            this.events.length = this.maxEvents;
-        }
         this.renderCards();
     }
 

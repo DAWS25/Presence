@@ -14,6 +14,7 @@ def get_healthcheck():
     status_code = 200 if overall == "OK" else 500
 
     content = {
+        "auth_client_id": "SET" if os.getenv("GOOGLE_CLIENT_ID") else "MISSING",
         "commit": os.getenv("GIT_COMMIT", "unknown"),
         "database": db_status,
         "health_status": overall,

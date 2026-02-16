@@ -25,7 +25,13 @@ cp -a $WEB_DIR/node_modules $WEB_DIR/target/
 
 # Replace environment variables in HTML files
 echo "🔧 Substituting environment variables..."
-export GOOGLE_CLIENT_ID="${GOOGLE_CLIENT_ID:-}"
+ENVSUBST_VARS=(GOOGLE_CLIENT_ID)
+for var in "${ENVSUBST_VARS[@]}"; do
+    if [ -z "${!var}" ]; then
+        echo "❌ Error: Required variable $var is not set" >&2
+        exit 1
+    fi
+done
 envsubst '$GOOGLE_CLIENT_ID' < $WEB_DIR/src/app/app.html > $WEB_DIR/target/app/app.html
 
 echo "🔧 Building SAM API function..."
@@ -40,6 +46,11 @@ popd
 
 echo "🔧 Building Lambda@Edge CORS function..."
 pushd $DIR/presence_edge_cors
+sam build
+popd
+
+echo "🔧 Building Lambda@Edge healthcheck function..."
+pushd $DIR/presence_edge_hc
 sam build
 popd
 

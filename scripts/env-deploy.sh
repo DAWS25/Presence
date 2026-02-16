@@ -157,6 +157,27 @@ sam deploy \
 popd
 echo "✓ Lambda@Edge CORS function deployed"
 
+# Deploy Lambda@Edge healthcheck function (must be us-east-1)
+echo "🔧 Deploying Lambda@Edge healthcheck function..."
+EDGE_HC_BUILD_TEMPLATE="$DIR/presence_edge_hc/.aws-sam/build/template.yaml"
+if [ ! -f "$EDGE_HC_BUILD_TEMPLATE" ]; then
+    echo "❌ Lambda@Edge healthcheck build output not found: $EDGE_HC_BUILD_TEMPLATE"
+    echo "   Run $SCRIPT_DIR/env-build.sh first to generate build artifacts."
+    exit 1
+fi
+
+pushd $DIR/presence_edge_hc
+sam deploy \
+    --stack-name $ENV_ID-presence-edge-hc \
+    --region us-east-1 \
+    --resolve-s3 \
+    --parameter-overrides EnvId=$ENV_ID \
+    --capabilities CAPABILITY_IAM \
+    --no-fail-on-empty-changeset \
+    --no-confirm-changeset
+popd
+echo "✓ Lambda@Edge healthcheck function deployed"
+
 aws cloudformation deploy \
     --stack-name $ENV_ID-web-distribution \
     --template-file $DIR/presence_cform/web-distribution.cform.yaml \

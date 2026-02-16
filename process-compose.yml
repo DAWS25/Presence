@@ -7,6 +7,10 @@ processes:
     command: ./scripts/dev-edge-start.sh
   1-edge-adapter:
     command: ./scripts/dev-edge-adapter-start.sh
+  1-edge-hc:
+    command: ./scripts/dev-edge-hc-start.sh
+  1-edge-hc-adapter:
+    command: ./scripts/dev-edge-hc-adapter-start.sh
   1-sam:
     command: ./scripts/dev-sam-start.sh
   1-web:

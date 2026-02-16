@@ -25,7 +25,13 @@ cp -a $WEB_DIR/node_modules $WEB_DIR/target/
 
 # Replace environment variables in HTML files
 echo "🔧 Substituting environment variables..."
-export GOOGLE_CLIENT_ID="${GOOGLE_CLIENT_ID:-}"
+ENVSUBST_VARS=(GOOGLE_CLIENT_ID)
+for var in "${ENVSUBST_VARS[@]}"; do
+    if [ -z "${!var}" ]; then
+        echo "❌ Error: Required variable $var is not set" >&2
+        exit 1
+    fi
+done
 envsubst '$GOOGLE_CLIENT_ID' < $WEB_DIR/src/app/app.html > $WEB_DIR/target/app/app.html
 
 # Build SAM application
@@ -64,6 +70,22 @@ elif command -v devbox >/dev/null 2>&1; then
   devbox run -- sam build
 else
   echo "Error: sam not found. Install AWS SAM CLI or use devbox." >&2
+  exit 1
+fi
+popd
+
+# Build Lambda@Edge healthcheck function
+echo "📦 Building Lambda@Edge healthcheck function..."
+pushd "$DIR/presence_edge_hc"
+if command -v sam >/dev/null 2>&1; then
+  sam build
+elif command -v devbox >/dev/null 2>&1; then
+  devbox run -- sam build
+else
+  echo "Error: sam not found. Install AWS SAM CLI or use devbox." >&2
+  exit 1
+fi
+popd
   exit 1
 fi
 popd

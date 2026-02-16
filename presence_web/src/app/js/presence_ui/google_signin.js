@@ -74,9 +74,28 @@
         // Display the One Tap prompt
         google.accounts.id.prompt((notification) => {
             if (notification.isNotDisplayed()) {
-                console.log('One Tap not displayed:', notification.getNotDisplayedReason());
+                const reason = notification.getNotDisplayedReason();
+                console.log('One Tap not displayed:', reason);
+                // User already has an active session — show auth event
+                if (window.presenceHistory) {
+                    const t = (key) => window.i18n ? window.i18n.t(key) : key;
+                    window.presenceHistory.addWelcomeMessage(
+                        t('auth.session.title'),
+                        t('auth.session.message'),
+                        '🔓'
+                    );
+                }
             } else if (notification.isSkippedMoment()) {
-                console.log('One Tap skipped:', notification.getSkippedReason());
+                const reason = notification.getSkippedReason();
+                console.log('One Tap skipped:', reason);
+                if (window.presenceHistory) {
+                    const t = (key) => window.i18n ? window.i18n.t(key) : key;
+                    window.presenceHistory.addWelcomeMessage(
+                        t('auth.session.title'),
+                        t('auth.session.message'),
+                        '🔓'
+                    );
+                }
             } else if (notification.isDismissedMoment()) {
                 console.log('One Tap dismissed:', notification.getDismissedReason());
             }

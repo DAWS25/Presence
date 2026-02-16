@@ -10,7 +10,7 @@ def handler(event, context):
     if uri == "/edge/auth/google/callback" and method == "POST":
         return google_callback(request)
 
-    if uri.startswith("/edge/"):
+    if uri.startswith("/edge/auth/"):
         return cf_response(200, "hello edge")
 
     return request

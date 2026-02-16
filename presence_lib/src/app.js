@@ -46,6 +46,9 @@ class PresenceApp {
             );
         }
         
+        // Check authentication status
+        this.checkAuthStatus();
+        
         try {
             if (typeof faceapi === 'undefined') {
                 throw new Error('face-api.js não carregado');
@@ -143,9 +146,9 @@ class PresenceApp {
             }
             this.faceCountEl.textContent = detections.length;
             
-            // Emit event when faces detected (13s cooldown)
+            // Emit event when faces detected (30s cooldown)
             const now = Date.now();
-            const cooldownMs = 5000;
+            const cooldownMs = 30000;
             if (detections.length > 0 && window.eventManager && (now - this.lastEventTs >= cooldownMs)) {
                 const snapshot = this.getSnapshot();
                 const boxes = detections.map(det => {

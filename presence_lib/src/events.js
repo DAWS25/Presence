@@ -9,7 +9,7 @@ class EventManager {
      */
     constructor() {
         this.listeners = {};
-        this.cooldowns = { faceDetected: 13000 }; // ms por evento
+        this.cooldowns = { faceDetected: 30000 }; // ms per event
         this.lastEmitTs = {};
     }
 

@@ -27,16 +27,16 @@ def _make_cf_event(uri, method="GET"):
 
 
 class TestEdgeHandler:
-    def test_edge_path_returns_hello(self):
-        event = _make_cf_event("/edge/asdf")
+    def test_edge_auth_path_returns_hello(self):
+        event = _make_cf_event("/edge/auth/test")
         result = handler(event, None)
 
         assert result["status"] == "200"
         assert result["body"] == "hello edge"
         assert result["headers"]["content-type"][0]["value"] == "text/plain"
 
-    def test_edge_root_returns_hello(self):
-        event = _make_cf_event("/edge/")
+    def test_edge_auth_root_returns_hello(self):
+        event = _make_cf_event("/edge/auth/")
         result = handler(event, None)
 
         assert result["status"] == "200"

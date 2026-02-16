@@ -1,0 +1,41 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Lambda@Edge healthcheck for Presence
+
+Parameters:
+  EnvId:
+    Type: String
+    Default: project
+    Description: Environment identifier used to prefix exported outputs.
+
+Resources:
+  EdgeHcFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src
+      Handler: presence_edge_hc.app.handler
+      Runtime: python3.12
+      MemorySize: 128
+      Timeout: 5
+      AutoPublishAlias: live
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+                - edgelambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+
+Outputs:
+  EdgeHcFunctionVersion:
+    Description: Lambda@Edge healthcheck versioned ARN for CloudFront association
+    Value: !Ref EdgeHcFunction.Version
+    Export:
+      Name: !Sub "${EnvId}-EdgeHcFunctionVersion"
+  EdgeHcFunctionArn:
+    Description: Lambda@Edge healthcheck function ARN
+    Value: !GetAtt EdgeHcFunction.Arn
+    Export:
+      Name: !Sub "${EnvId}-EdgeHcFunctionArn"
