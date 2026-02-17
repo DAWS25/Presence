@@ -126,7 +126,7 @@ fi
 
 pushd $DIR/presence_edge_auth
 sam deploy \
-    --stack-name $ENV_ID-presence-edge-auth \
+    --stack-name $ENV_ID-edge-auth \
     --region us-east-1 \
     --resolve-s3 \
     --parameter-overrides EnvId=$ENV_ID \
@@ -147,7 +147,7 @@ fi
 
 pushd $DIR/presence_edge_cors
 sam deploy \
-    --stack-name $ENV_ID-presence-edge-cors \
+    --stack-name $ENV_ID-edge-cors \
     --region us-east-1 \
     --resolve-s3 \
     --parameter-overrides EnvId=$ENV_ID \
@@ -168,7 +168,7 @@ fi
 
 pushd $DIR/presence_edge_hc
 sam deploy \
-    --stack-name $ENV_ID-presence-edge-hc \
+    --stack-name $ENV_ID-edge-hc \
     --region us-east-1 \
     --resolve-s3 \
     --parameter-overrides EnvId=$ENV_ID \
@@ -189,7 +189,7 @@ fi
 
 pushd $DIR/presence_edge_root
 sam deploy \
-    --stack-name $ENV_ID-presence-edge-root \
+    --stack-name $ENV_ID-edge-root \
     --region us-east-1 \
     --resolve-s3 \
     --parameter-overrides EnvId=$ENV_ID \
