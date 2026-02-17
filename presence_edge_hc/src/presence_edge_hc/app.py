@@ -1,7 +1,24 @@
 import json
-import os
 import ssl
 import urllib.request
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _json_response(status_code, body):
+    """Build a CloudFront-compatible JSON response."""
+    descriptions = {"200": "OK", "400": "Bad Request", "500": "Internal Server Error"}
+    return {
+        "status": str(status_code),
+        "statusDescription": descriptions.get(str(status_code), "Error"),
+        "headers": {
+            "content-type": [{"key": "Content-Type", "value": "application/json"}],
+            "cache-control": [{"key": "Cache-Control", "value": "no-cache"}],
+        },
+        "body": json.dumps(body),
+    }
 
 
 def _get_host(request):
@@ -13,6 +30,10 @@ def _get_host(request):
     return ""
 
 
+# ---------------------------------------------------------------------------
+# Origin health fetch
+# ---------------------------------------------------------------------------
+
 def _fetch_origin_health(host):
     """Fetch origin healthcheck at /fn/__hc and return parsed JSON.
 
@@ -20,12 +41,10 @@ def _fetch_origin_health(host):
     When running locally inside Docker (SAM), falls back to the proxy
     container reachable via devbox_net.
     """
-    # Extract port from host if present
     port = ""
     if ":" in host:
         _, port = host.rsplit(":", 1)
 
-    # Try the real host first; fall back to Docker container name for local dev
     targets = [host]
     if port:
         targets.append(f"proxy:{port}")
@@ -54,44 +73,49 @@ def _fetch_origin_health(host):
     return {"error": str(last_error)}
 
 
+# ---------------------------------------------------------------------------
+# Route handlers
+# ---------------------------------------------------------------------------
+
+def _handle_live():
+    """Liveness probe — confirms the edge function itself is running."""
+    return _json_response(200, {"health_status": "LIVE"})
+
+
+def _handle_ready(request):
+    """Readiness probe — checks edge *and* origin health."""
+    host = _get_host(request)
+    fn_health = _fetch_origin_health(host) if host else {"error": "no host header"}
+
+    has_error = "error" in fn_health
+    fn_status = fn_health.get("health_status", "ERROR")
+    edge_status = "OK"
+    healthy = not has_error and fn_status == "OK" and edge_status == "OK"
+
+    body = {
+        "health_status": "READY" if healthy else "ERROR",
+        "edge": {"health_status": edge_status},
+        "fn": fn_health,
+    }
+    return _json_response(200 if healthy else 500, body)
+
+
+# ---------------------------------------------------------------------------
+# Lambda handler
+# ---------------------------------------------------------------------------
+
+_ROUTES = {
+    "/edge/hc/live": lambda _req: _handle_live(),
+    "/edge/hc/ready": _handle_ready,
+}
+
+
 def handler(event, context):
     request = event["Records"][0]["cf"]["request"]
     uri = request.get("uri", "")
 
-    if uri == "/edge/hc/ready":
-        host = _get_host(request)
-        fn_health = _fetch_origin_health(host) if host else {"error": "no host header"}
+    route = _ROUTES.get(uri)
+    if route:
+        return route(request)
 
-        has_error = "error" in fn_health
-        fn_status = fn_health.get("health_status", "ERROR")
-        edge_status = "OK"
-        healthy = not has_error and fn_status == "OK" and edge_status == "OK"
-
-        overall = "OK" if healthy else "ERROR"
-
-        body = {
-            "health_status": overall,
-            "edge": {"health_status": edge_status},
-            "fn": fn_health,
-        }
-
-        status_code = "200" if healthy else "500"
-
-        return {
-            "status": status_code,
-            "statusDescription": "OK" if healthy else "Internal Server Error",
-            "headers": {
-                "content-type": [{"key": "Content-Type", "value": "application/json"}],
-                "cache-control": [{"key": "Cache-Control", "value": "no-cache"}],
-            },
-            "body": json.dumps(body),
-        }
-
-    return {
-        "status": "400",
-        "statusDescription": "Bad Request",
-        "headers": {
-            "content-type": [{"key": "Content-Type", "value": "application/json"}],
-        },
-        "body": json.dumps({"error": "not found"}),
-    }
+    return _json_response(400, {"error": "not found"})

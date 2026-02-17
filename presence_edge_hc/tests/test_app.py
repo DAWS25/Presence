@@ -28,6 +28,18 @@ def _make_cf_event(uri, method="GET", host="example.com"):
 
 
 class TestEdgeHcHandler:
+    # ---- /edge/hc/live ----
+
+    def test_live_returns_ok(self):
+        event = _make_cf_event("/edge/hc/live")
+        result = handler(event, None)
+
+        assert result["status"] == "200"
+        body = json.loads(result["body"])
+        assert body["health_status"] == "LIVE"
+
+    # ---- /edge/hc/ready ----
+
     @patch("presence_edge_hc.app._fetch_origin_health")
     def test_hc_returns_ok_when_origin_healthy(self, mock_fetch):
         mock_fetch.return_value = {
@@ -40,7 +52,7 @@ class TestEdgeHcHandler:
 
         assert result["status"] == "200"
         body = json.loads(result["body"])
-        assert body["health_status"] == "OK"
+        assert body["health_status"] == "READY"
         assert body["edge"]["health_status"] == "OK"
         assert body["fn"]["health_status"] == "OK"
 
