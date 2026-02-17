@@ -178,6 +178,27 @@ sam deploy \
 popd
 echo "✓ Lambda@Edge healthcheck function deployed"
 
+# Deploy Lambda@Edge root redirect function (must be us-east-1)
+echo "🔧 Deploying Lambda@Edge root redirect function..."
+EDGE_ROOT_BUILD_TEMPLATE="$DIR/presence_edge_root/.aws-sam/build/template.yaml"
+if [ ! -f "$EDGE_ROOT_BUILD_TEMPLATE" ]; then
+    echo "❌ Lambda@Edge root redirect build output not found: $EDGE_ROOT_BUILD_TEMPLATE"
+    echo "   Run $SCRIPT_DIR/env-build.sh first to generate build artifacts."
+    exit 1
+fi
+
+pushd $DIR/presence_edge_root
+sam deploy \
+    --stack-name $ENV_ID-presence-edge-root \
+    --region us-east-1 \
+    --resolve-s3 \
+    --parameter-overrides EnvId=$ENV_ID \
+    --capabilities CAPABILITY_IAM \
+    --no-fail-on-empty-changeset \
+    --no-confirm-changeset
+popd
+echo "✓ Lambda@Edge root redirect function deployed"
+
 aws cloudformation deploy \
     --stack-name $ENV_ID-web-distribution \
     --template-file $DIR/presence_cform/web-distribution.cform.yaml \
