@@ -104,7 +104,7 @@ echo "📦 Deploying version: $APP_VERSION (commit: $GIT_COMMIT)"
 
 pushd $DIR/presence_sam
 sam deploy \
-    --stack-name $ENV_ID-presence-api \
+    --stack-name $ENV_ID-api \
     --parameter-overrides \
         EnvId=$ENV_ID \
         AppVersion=$APP_VERSION \
