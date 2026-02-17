@@ -57,7 +57,7 @@ $AWS_CLI s3 sync $DIR/presence_web/target/ s3://$BUCKET_NAME/ --delete
 echo "🔧 Deploying Lambda@Edge auth function..."
 pushd $DIR/presence_edge_auth
 $AWS_CLI cloudformation deploy \
-    --stack-name $ENV_ID-presence-edge \
+    --stack-name $ENV_ID-presence-edge-auth \
     --template-file $DIR/presence_edge_auth/.aws-sam/build/template.yaml \
     --parameter-overrides EnvId="$ENV_ID" \
     --capabilities CAPABILITY_IAM \

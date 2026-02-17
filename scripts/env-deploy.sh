@@ -126,7 +126,7 @@ fi
 
 pushd $DIR/presence_edge_auth
 sam deploy \
-    --stack-name $ENV_ID-presence-edge \
+    --stack-name $ENV_ID-presence-edge-auth \
     --region us-east-1 \
     --resolve-s3 \
     --parameter-overrides EnvId=$ENV_ID \
