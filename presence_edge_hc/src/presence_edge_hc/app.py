@@ -43,6 +43,9 @@ def _fetch_origin_health(host):
             req = urllib.request.Request(url, method="GET")
             req.add_header("Host", host)
             with urllib.request.urlopen(req, timeout=5, context=ctx) as resp:
+                if resp.status != 200:
+                    last_error = Exception(f"origin returned {resp.status}")
+                    continue
                 body = resp.read().decode("utf-8")
                 return json.loads(body)
         except Exception as e:
@@ -59,9 +62,12 @@ def handler(event, context):
         host = _get_host(request)
         fn_health = _fetch_origin_health(host) if host else {"error": "no host header"}
 
-        fn_status = fn_health.get("health_status", "UNKNOWN")
+        has_error = "error" in fn_health
+        fn_status = fn_health.get("health_status", "ERROR")
         edge_status = "OK"
-        overall = "OK" if edge_status == "OK" and fn_status == "OK" else "DEGRADED"
+        healthy = not has_error and fn_status == "OK" and edge_status == "OK"
+
+        overall = "OK" if healthy else "ERROR"
 
         body = {
             "health_status": overall,
@@ -69,11 +75,11 @@ def handler(event, context):
             "fn": fn_health,
         }
 
-        status_code = "200" if overall == "OK" else "500"
+        status_code = "200" if healthy else "500"
 
         return {
             "status": status_code,
-            "statusDescription": "OK" if overall == "OK" else "Service Degraded",
+            "statusDescription": "OK" if healthy else "Internal Server Error",
             "headers": {
                 "content-type": [{"key": "Content-Type", "value": "application/json"}],
                 "cache-control": [{"key": "Cache-Control", "value": "no-cache"}],

@@ -1,0 +1,35 @@
+Description: "Route53 health check for edge healthcheck endpoint"
+
+Parameters:
+  EnvId:
+    Type: String
+    Default: project
+    Description: Environment identifier used to prefix exported outputs.
+
+  DomainName:
+    Type: String
+    Description: Domain name to health check (e.g., www.example.com)
+    AllowedPattern: ^[a-zA-Z0-9][a-zA-Z0-9-_.]*[a-zA-Z0-9]$
+
+Resources:
+  EdgeHealthCheck:
+    Type: AWS::Route53::HealthCheck
+    Properties:
+      HealthCheckConfig:
+        FullyQualifiedDomainName: !Ref DomainName
+        Port: 443
+        Type: HTTPS
+        ResourcePath: /edge/hc/ready
+        RequestInterval: 30
+        FailureThreshold: 3
+        EnableSNI: true
+      HealthCheckTags:
+        - Key: Name
+          Value: !Sub "${EnvId}-edge-healthcheck"
+
+Outputs:
+  HealthCheckId:
+    Description: Route53 Health Check ID
+    Value: !Ref EdgeHealthCheck
+    Export:
+      Name: !Sub "${EnvId}-EdgeHealthCheckId"

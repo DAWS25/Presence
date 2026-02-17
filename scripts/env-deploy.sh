@@ -196,6 +196,17 @@ aws cloudformation deploy \
         HostedZoneId="$ZONE_ID" \
     --no-fail-on-empty-changeset
 
+# Deploy Route53 health check for edge healthcheck endpoint
+echo "🏥 Deploying Route53 health check..."
+aws cloudformation deploy \
+    --stack-name $ENV_ID-edge-healthcheck \
+    --template-file $DIR/presence_cform/edge-healthcheck.cform.yaml \
+    --parameter-overrides \
+        EnvId="$ENV_ID" \
+        DomainName="$DOMAIN_NAME" \
+    --no-fail-on-empty-changeset
+echo "✓ Route53 health check deployed"
+
 # Get distribution ID and URL
 DISTRIBUTION_ID=$(aws cloudformation describe-stacks \
     --stack-name $ENV_ID-web-distribution \

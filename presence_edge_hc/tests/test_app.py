@@ -45,7 +45,7 @@ class TestEdgeHcHandler:
         assert body["fn"]["health_status"] == "OK"
 
     @patch("presence_edge_hc.app._fetch_origin_health")
-    def test_hc_returns_degraded_when_origin_unhealthy(self, mock_fetch):
+    def test_hc_returns_error_when_origin_unhealthy(self, mock_fetch):
         mock_fetch.return_value = {
             "health_status": "DEGRADED",
             "database": "ERROR",
@@ -55,19 +55,19 @@ class TestEdgeHcHandler:
 
         assert result["status"] == "500"
         body = json.loads(result["body"])
-        assert body["health_status"] == "DEGRADED"
+        assert body["health_status"] == "ERROR"
         assert body["edge"]["health_status"] == "OK"
         assert body["fn"]["health_status"] == "DEGRADED"
 
     @patch("presence_edge_hc.app._fetch_origin_health")
-    def test_hc_returns_degraded_when_origin_errors(self, mock_fetch):
+    def test_hc_returns_error_when_origin_errors(self, mock_fetch):
         mock_fetch.return_value = {"error": "connection refused"}
         event = _make_cf_event("/edge/hc/ready")
         result = handler(event, None)
 
         assert result["status"] == "500"
         body = json.loads(result["body"])
-        assert body["health_status"] == "DEGRADED"
+        assert body["health_status"] == "ERROR"
         assert body["fn"]["error"] == "connection refused"
 
     def test_non_hc_path_returns_400(self):
