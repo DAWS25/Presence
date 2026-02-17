@@ -241,7 +241,6 @@ DISTRIBUTION_URL=$(aws cloudformation describe-stacks \
 
 # Wait for CloudFront distribution to be deployed
 echo "⏳ Waiting for CloudFront distribution to be deployed..."
-aws cloudformation wait stack-update-complete --stack-name $ENV_ID-web-distribution 2>/dev/null || true
 
 MAX_WAIT=600  # 10 minutes
 WAIT_INTERVAL=30

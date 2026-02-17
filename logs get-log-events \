@@ -1,0 +1,31 @@
+++ popd
+	/codebuild/output/src2059/src/github.com/DAWS25/GitOps/modules/Presence/presence_web /codebuild/output/src2059/src/github.com/DAWS25/GitOps
+	++ echo '✓ Lambda@Edge root redirect function deployed'
+	✓ Lambda@Edge root redirect function deployed
+	++ aws cloudformation deploy --stack-name presence-beta-web-distribution --template-file /codebuild/output/src2059/src/github.com/DAWS25/GitOps/modules/Presence/presence_cform/web-distribution.cform.yaml --parameter-overrides EnvId=presence-beta DomainName=presence-beta.env.daws25.com CertificateArn=arn:aws:acm:us-east-1:730335617563:certificate/cf8c30d4-fefd-4e43-bfb4-72d81ddb5414 --no-fail-on-empty-changeset
+	
+	Waiting for changeset to be created..
+	
+	No changes to deploy. Stack presence-beta-web-distribution is up to date
+	++ aws cloudformation deploy --stack-name presence-beta-web-records --template-file /codebuild/output/src2059/src/github.com/DAWS25/GitOps/modules/Presence/presence_cform/web-records.cform.yaml --parameter-overrides EnvId=presence-beta DomainName=presence-beta.env.daws25.com HostedZoneId=Z042771536PI9D1N61629 --no-fail-on-empty-changeset
+	
+	Waiting for changeset to be created..
+	
+	No changes to deploy. Stack presence-beta-web-records is up to date
+	++ echo '🏥 Deploying Route53 health check...'
+	🏥 Deploying Route53 health check...
+	++ aws cloudformation deploy --stack-name presence-beta-edge-healthcheck --template-file /codebuild/output/src2059/src/github.com/DAWS25/GitOps/modules/Presence/presence_cform/edge-healthcheck.cform.yaml --parameter-overrides EnvId=presence-beta DomainName=presence-beta.env.daws25.com --no-fail-on-empty-changeset
+	
+	Waiting for changeset to be created..
+	
+	No changes to deploy. Stack presence-beta-edge-healthcheck is up to date
+	++ echo '✓ Route53 health check deployed'
+	✓ Route53 health check deployed
+	+++ aws cloudformation describe-stacks --stack-name presence-beta-web-distribution --query 'Stacks[0].Outputs[?OutputKey=='\''DistributionId'\''].OutputValue' --output text
+	++ DISTRIBUTION_ID=E2X4Q36AFOFOM7
+	+++ aws cloudformation describe-stacks --stack-name presence-beta-web-distribution --query 'Stacks[0].Outputs[?OutputKey=='\''DistributionDomainName'\''].OutputValue' --output text
+	++ DISTRIBUTION_URL=d109y7bvtc6plk.cloudfront.net
+	++ echo '⏳ Waiting for CloudFront distribution to be deployed...'
+	⏳ Waiting for CloudFront distribution to be deployed...
+	++ aws cloudformation wait stack-update-complete --stack-name presence-beta-web-distribution
+
