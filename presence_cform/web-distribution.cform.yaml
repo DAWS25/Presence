@@ -25,16 +25,6 @@ Parameters:
     Description: ARN of the ACM certificate for HTTPS
 
 Resources:
-  # S3 Bucket for static files
-  DistributionBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-
   # Origin Access Control for CloudFront to access S3
   OriginAccessControl:
     Type: AWS::CloudFront::OriginAccessControl
@@ -69,34 +59,50 @@ Resources:
             Cookies:
               Forward: none
           LambdaFunctionAssociations:
+            - EventType: viewer-request
+              LambdaFunctionARN:
+                Fn::ImportValue: !Sub "${EnvId}-EdgeRootFunctionVersion"
             - EventType: origin-response
               LambdaFunctionARN:
                 Fn::ImportValue: !Sub "${EnvId}-EdgeCorsFunctionVersion"
         CacheBehaviors:
-          - PathPattern: "/edge/*"
+          - PathPattern: "/edge/hc/*"
             TargetOriginId: S3Origin
             ViewerProtocolPolicy: https-only
             AllowedMethods:
               - GET
               - HEAD
-              - OPTIONS
-              - PUT
-              - POST
-              - PATCH
-              - DELETE
+            CachedMethods:
+              - GET
+              - HEAD
+            Compress: true
+            ForwardedValues:
+              QueryString: false
+              Cookies:
+                Forward: none
+            LambdaFunctionAssociations:
+              - EventType: viewer-request
+                LambdaFunctionARN:
+                  Fn::ImportValue: !Sub "${EnvId}-EdgeHcFunctionVersion"
+              - EventType: origin-response
+                LambdaFunctionARN:
+                  Fn::ImportValue: !Sub "${EnvId}-EdgeCorsFunctionVersion"
+          - PathPattern: "/app/*"
+            TargetOriginId: S3Origin
+            ViewerProtocolPolicy: https-only
+            AllowedMethods:
+              - GET
+              - HEAD
             CachedMethods:
               - GET
               - HEAD
             Compress: true
             ForwardedValues:
               QueryString: true
-              Headers:
-                - Content-Type
               Cookies:
-                Forward: none
+                Forward: all
             LambdaFunctionAssociations:
               - EventType: origin-request
-                IncludeBody: true
                 LambdaFunctionARN:
                   Fn::ImportValue: !Sub "${EnvId}-EdgeFunctionVersion"
               - EventType: origin-response
@@ -173,12 +179,6 @@ Resources:
 
 
 Outputs:
-  BucketDomainName:
-    Description: Regional domain name of the S3 bucket
-    Value: !GetAtt DistributionBucket.RegionalDomainName
-    Export:
-      Name: !Sub "${AWS::StackName}-BucketDomainName"
-
   DistributionId:
     Description: CloudFront distribution ID
     Value: !Ref CloudFrontDistribution
