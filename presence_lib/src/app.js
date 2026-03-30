@@ -61,7 +61,7 @@ class PresenceApp {
                 throw new Error('EventManager não carregado');
             }
 
-            const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
+            const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1/model';
             console.log('📦 Carregando modelos...');
             
             await Promise.all([
@@ -71,6 +71,11 @@ class PresenceApp {
             ]);
             console.log('✅ Modelos carregados (detector + landmarks + recognition)');
             
+            // Load COCO-SSD for animal detection
+            if (window.animalDetector) {
+                await window.animalDetector.load();
+            }
+
             // Show welcome message when face-api is loaded
             if (window.presenceHistory && window.i18n) {
                 window.presenceHistory.addWelcomeMessage(
@@ -144,7 +149,14 @@ class PresenceApp {
             ).withFaceLandmarks().withFaceDescriptors();
             
             if (perfNow - this.lastLogTs > 1000) {
-                console.log('✅ Detecções:', detections.length);
+                if (detections.length > 0) {
+                    console.log(`👤 People detected: ${detections.length}`);
+                }
+                // Animal detection log
+                if (window.animalDetector && window.animalDetector.isReady && window.animalDetector.lastAnimals.length > 0) {
+                    const names = window.animalDetector.lastAnimals.map(a => a.class).join(', ');
+                    console.log(`🐾 Pets detected: ${window.animalDetector.lastAnimals.length} (${names})`);
+                }
                 this.lastLogTs = perfNow;
             }
             this.faceCountEl.textContent = detections.length;
@@ -177,6 +189,12 @@ class PresenceApp {
             }
             
             this.draw(detections);
+
+            // Animal detection (COCO-SSD)
+            if (window.animalDetector && window.animalDetector.isReady) {
+                const animals = await window.animalDetector.detect();
+                window.animalDetector.draw(animals);
+            }
             
         } catch (error) {
             console.error('❌ Erro detectLoop:', error);
