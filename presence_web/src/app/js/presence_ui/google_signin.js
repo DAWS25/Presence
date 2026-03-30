@@ -3,11 +3,20 @@
    Initialises Google Identity Services One Tap prompt.
    ======================================== */
 
-(function () {
+function googleSignInInit() {
     'use strict';
 
-    const GOOGLE_CLIENT_ID =
-        document.querySelector('meta[name="google-client-id"]')?.content || '';
+    /**
+     * Fetch the Google Client ID from the config endpoint.
+     */
+    async function fetchClientId() {
+        const res = await fetch('/fn/config/GOOGLE_CLIENT_ID');
+        if (!res.ok) {
+            throw new Error(`Config request failed (${res.status})`);
+        }
+        const data = await res.json();
+        return data.value;
+    }
 
     /**
      * Send the Google credential to the edge auth endpoint.
@@ -52,7 +61,22 @@
     /**
      * Initialise Google Identity Services One Tap prompt.
      */
-    function init() {
+    async function init() {
+        let GOOGLE_CLIENT_ID;
+        try {
+            GOOGLE_CLIENT_ID = await fetchClientId();
+        } catch (err) {
+            console.error('Failed to fetch Google Client ID:', err);
+            if (window.presenceHistory) {
+                window.presenceHistory.addWelcomeMessage(
+                    'Authentication',
+                    `✗ Config error: ${err.message}`,
+                    '🔒'
+                );
+            }
+            return;
+        }
+
         if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID.startsWith('$')) {
             console.warn('Google Client ID not configured — sign-in disabled');
             return;
@@ -114,4 +138,6 @@
     }
 
     window.addEventListener('load', initWhenReady);
-})();
+}
+
+googleSignInInit();

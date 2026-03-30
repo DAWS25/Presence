@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Aurora Serverless v3 PostgreSQL database cluster
+
+Parameters:
+  TenantId:
+    Type: String
+    Default: main
+
+  EnvId:
+    Type: String
+    Default: project
+    Description: Environment identifier used to prefix exported outputs.
+
+  ParamName:
+    Type: String
+    Default: SOME_VARIABLE
+    Description: Name of the parameter to export
+  
+  ParamValue:
+    Type: String
+    Default: some_value
+    Description: Value of the parameter to export
+
+Resources:
+
+  SSMParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${TenantId}/${EnvId}/${ParamName}"
+      Type: String
+      Value: !Ref ParamValue
+      Tags:
+        Name: !Sub "${TenantId}-${EnvId}-${ParamName}"
+        TenantId: !Ref TenantId
+        EnvId: !Ref EnvId
+
+Outputs:
+  ParameterName:
+    Description: Name of the exported SSM parameter
+    Value: !Ref SSMParameter
+    Export:
+      Name: !Sub "${TenantId}-${EnvId}-${ParamName}"
+
+  

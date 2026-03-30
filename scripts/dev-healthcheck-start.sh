@@ -5,7 +5,7 @@ pushd "$DIR"
 # 
 
 sleep 10
-TIMEOUT=${1:-15}
+TIMEOUT=${1:-30}
 
 host="local.env.daws25.com"
 port="10443"

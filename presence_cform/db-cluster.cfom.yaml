@@ -2,6 +2,10 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: Aurora Serverless v3 PostgreSQL database cluster
 
 Parameters:
+  TenantId:
+    Type: String
+    Default: main
+
   EnvId:
     Type: String
     Default: project
@@ -23,7 +27,7 @@ Parameters:
     Type: Number
     Default: 0.0
     Description: Minimum Aurora Capacity Units (ACUs) - 0.5, 1, 2, 4, 8, 16, 32, 64, 128, 192, 256, 384
-    AllowedValues: [0.0,0.5, 1, 2, 4, 8, 16, 32, 64, 128, 192, 256, 384]
+    AllowedValues: [0.0, 0.5, 1, 2, 4, 8, 16, 32, 64, 128, 192, 256, 384]
 
   MaxCapacity:
     Type: Number
@@ -31,49 +35,58 @@ Parameters:
     Description: Maximum Aurora Capacity Units (ACUs) - 0.5, 1, 2, 4, 8, 16, 32, 64, 128, 192, 256, 384
     AllowedValues: [0.5, 1, 2, 4, 8, 16, 32, 64, 128, 192, 256, 384]
 
+  EngineVersion:
+    Type: String
+    Default: "16.6"
+    Description: Aurora PostgreSQL engine version to use for the cluster
+
+  DBAllowedIngressCidr:
+    Type: String
+    Default: "0.0.0.0/0"
+    Description: CIDR block allowed to access the database (for testing, use 0.
+
 Resources:
   DBSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
-      DBSubnetGroupName: !Sub "${EnvId}-db-subnet-group"
+      DBSubnetGroupName: !Sub "${TenantId}-${EnvId}-db-subnet-group"
       DBSubnetGroupDescription: !Sub "Subnet group for ${EnvId} Aurora cluster"
       SubnetIds:
         Fn::Split:
           - ","
-          - Fn::ImportValue: !Sub "${EnvId}-IsolatedSubnetIds"
+          - Fn::ImportValue: !Sub "${TenantId}-${EnvId}-IsolatedSubnetIds"
       Tags:
         - Key: Name
-          Value: !Sub "${EnvId}-db-subnet-group"
+          Value: !Sub "${TenantId}-${EnvId}-db-subnet-group"
         - Key: Environment
           Value: !Ref EnvId
 
   DBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: !Sub "${EnvId}-db-security-group"
+      GroupName: !Sub "${TenantId}-${EnvId}-db-security-group"
       GroupDescription: !Sub "Security group for ${EnvId} Aurora cluster"
       VpcId:
-        Fn::ImportValue: !Sub "${EnvId}-VpcId"
+        Fn::ImportValue: !Sub "${TenantId}-${EnvId}-VpcId"
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 5432
           ToPort: 5432
-          # TODO: Restrict access to specific IPs or security groups instead of allowing all
-          CidrIp: 0.0.0.0/0
+          CidrIp: !Ref DBAllowedIngressCidr
           Description: PostgreSQL access
       Tags:
         - Key: Name
-          Value: !Sub "${EnvId}-db-security-group"
+          Value: !Sub "${TenantId}-${EnvId}-db-security-group"
         - Key: Environment
           Value: !Ref EnvId
 
   DBCluster:
     Type: AWS::RDS::DBCluster
     Properties:
-      DBClusterIdentifier: !Sub "${EnvId}-db-cluster"
+      DBClusterIdentifier: !Sub "${TenantId}-${EnvId}-db-cluster"
       Engine: aurora-postgresql
       EngineMode: provisioned
-      EngineVersion: "16.6"
+      EngineVersion: !Ref EngineVersion
       DatabaseName: !Ref DatabaseName
       MasterUsername: !Ref MasterUsername
       ManageMasterUserPassword: true
@@ -91,21 +104,21 @@ Resources:
       StorageEncrypted: true
       Tags:
         - Key: Name
-          Value: !Sub "${EnvId}-db-cluster"
+          Value: !Sub "${TenantId}-${EnvId}-db-cluster"
         - Key: Environment
           Value: !Ref EnvId
 
   DBInstance:
     Type: AWS::RDS::DBInstance
     Properties:
-      DBInstanceIdentifier: !Sub "${EnvId}-db-instance"
+      DBInstanceIdentifier: !Sub "${TenantId}-${EnvId}-db-instance"
       DBClusterIdentifier: !Ref DBCluster
       DBInstanceClass: db.serverless
       Engine: aurora-postgresql
       PubliclyAccessible: false
       Tags:
         - Key: Name
-          Value: !Sub "${EnvId}-db-instance"
+          Value: !Sub "${TenantId}-${EnvId}-db-instance"
         - Key: Environment
           Value: !Ref EnvId
 
@@ -114,58 +127,58 @@ Outputs:
     Description: Aurora cluster endpoint
     Value: !GetAtt DBCluster.Endpoint.Address
     Export:
-      Name: !Sub "${EnvId}-DBClusterEndpoint"
+      Name: !Sub "${TenantId}-${EnvId}-DBClusterEndpoint"
 
   DBClusterReadEndpoint:
     Description: Aurora cluster read endpoint
     Value: !GetAtt DBCluster.ReadEndpoint.Address
     Export:
-      Name: !Sub "${EnvId}-DBClusterReadEndpoint"
+      Name: !Sub "${TenantId}-${EnvId}-DBClusterReadEndpoint"
 
   DBClusterPort:
     Description: Aurora cluster port
     Value: !GetAtt DBCluster.Endpoint.Port
     Export:
-      Name: !Sub "${EnvId}-DBClusterPort"
+      Name: !Sub "${TenantId}-${EnvId}-DBClusterPort"
 
   DBClusterIdentifier:
     Description: Aurora cluster identifier
     Value: !Ref DBCluster
     Export:
-      Name: !Sub "${EnvId}-DBClusterIdentifier"
+      Name: !Sub "${TenantId}-${EnvId}-DBClusterIdentifier"
 
   DatabaseName:
     Description: Database name
     Value: !Ref DatabaseName
     Export:
-      Name: !Sub "${EnvId}-DatabaseName"
+      Name: !Sub "${TenantId}-${EnvId}-DatabaseName"
 
   DBSecurityGroupId:
     Description: Security group ID for database access
     Value: !Ref DBSecurityGroup
     Export:
-      Name: !Sub "${EnvId}-DBSecurityGroupId"
+      Name: !Sub "${TenantId}-${EnvId}-DBSecurityGroupId"
 
   DBMasterUsername:
     Description: Master username for the database
     Value: !Ref MasterUsername
     Export:
-      Name: !Sub "${EnvId}-DBMasterUsername"
+      Name: !Sub "${TenantId}-${EnvId}-DBMasterUsername"
 
   DBClusterResourceId:
     Description: Aurora cluster resource ID (for IAM auth)
     Value: !GetAtt DBCluster.DBClusterResourceId
     Export:
-      Name: !Sub "${EnvId}-DBClusterResourceId"
+      Name: !Sub "${TenantId}-${EnvId}-DBClusterResourceId"
 
   MasterUserSecretArn:
     Description: ARN of the Secrets Manager secret containing the master password
     Value: !GetAtt DBCluster.MasterUserSecret.SecretArn
     Export:
-      Name: !Sub "${EnvId}-DBMasterUserSecretArn"
+      Name: !Sub "${TenantId}-${EnvId}-DBMasterUserSecretArn"
 
   ConnectionString:
     Description: PostgreSQL connection string (password managed by Secrets Manager)
     Value: !Sub "postgresql://${MasterUsername}@${DBCluster.Endpoint.Address}:${DBCluster.Endpoint.Port}/${DatabaseName}"
     Export:
-      Name: !Sub "${EnvId}-DBConnectionString"
+      Name: !Sub "${TenantId}-${EnvId}-DBConnectionString"
