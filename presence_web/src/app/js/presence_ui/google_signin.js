@@ -12,7 +12,8 @@ function googleSignInInit() {
     async function fetchClientId() {
         const res = await fetch('/fn/config/GOOGLE_CLIENT_ID');
         if (!res.ok) {
-            throw new Error(`Config request failed (${res.status})`);
+            console.warn(`⚠️ Config[GOOGLE_CLIENT_ID] request failed status[${res.status}]`);
+            return null;
         }
         const data = await res.json();
         return data.value;
