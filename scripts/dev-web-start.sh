@@ -34,17 +34,6 @@ cp -a $WEB_DIR/src/* $WEB_DIR/target/
 # Copy node_modules to target (required for Bootstrap and face-api.js)
 cp -a $WEB_DIR/node_modules $WEB_DIR/target/
 
-# Replace environment variables in HTML files
-echo "🔧 Substituting environment variables..."
-ENVSUBST_VARS=(GOOGLE_CLIENT_ID)
-for var in "${ENVSUBST_VARS[@]}"; do
-    if [ -z "${!var}" ]; then
-        echo "❌ Error: Required variable $var is not set" >&2
-        exit 1
-    fi
-done
-envsubst '$GOOGLE_CLIENT_ID' < $WEB_DIR/src/app/app.html > $WEB_DIR/target/app/app.html
-
 restart_proxy
 
 # Iniciar livereload server com suporte a mudanças de arquivo
