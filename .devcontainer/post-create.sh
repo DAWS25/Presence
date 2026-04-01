@@ -1,4 +1,4 @@
-#!/bin/bash
+P#!/bin/bash
 
 # Package manager detection (apt or yum only)
 if command -v apt-get &> /dev/null; then
