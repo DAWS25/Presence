@@ -18,8 +18,10 @@ It should be as simple as this:
 1. Start a new <a href="https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=1115772808&skip_quickstart=true&machine=standardLinux32gb&devcontainer_path=.devcontainer%2Fdevc[...]" target="_blank">GitHub Codespace</a>
 1. Start a terminal and run your `devbox shell`. It will run automatically on codespaces.
 1. Run `devbox services up` to start all application services (database, web server, proxy, ...).
-1. Access the application, preferably on the URL https://local.env.daws25.com:10443/ to test locally with the same browser polocies regarding HTTPS and CORS.
-
+1. Access the application,
+   1.1: Using HTTPS on https://local.env.daws25.com:10443/ to test locally with the same browser polocies regarding HTTPS and CORS.
+   1.1: Using HTTP(S) over your codespaces forwarded port
+   
 Please open a discussion if you have any issues running this project.
 
 # Join us!
