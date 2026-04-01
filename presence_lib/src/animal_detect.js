@@ -60,6 +60,7 @@ class AnimalDetector {
         if (animals.length > 0 && window.eventManager) {
             const ts = Date.now();
             if (ts - this.lastEventTs >= this.cooldownMs) {
+                const snapshot = this.getSnapshot ? this.getSnapshot() : null;
                 window.eventManager.emit('animalDetected', {
                     animalCount: animals.length,
                     animals: animals.map(a => ({
@@ -67,7 +68,8 @@ class AnimalDetector {
                         score: a.score,
                         bbox: a.bbox
                     })),
-                    timestamp: new Date().toISOString()
+                    timestamp: new Date().toISOString(),
+                    snapshot
                 });
                 this.lastEventTs = ts;
             }

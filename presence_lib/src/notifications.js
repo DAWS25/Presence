@@ -15,6 +15,7 @@ class NotificationManager {
         // Register listener for detection events
         if (window.eventManager && !window.__notificationFaceListenerAdded) {
             window.eventManager.on('faceDetected', (data) => this.showFaceDetectedMessage(data));
+            window.eventManager.on('animalDetected', (data) => this.showAnimalDetectedMessage(data));
             window.__notificationFaceListenerAdded = true;
         }
     }
@@ -32,6 +33,19 @@ class NotificationManager {
         
         this.showMessage(message, 'success');
         console.log(`📊 Total de detecções: ${this.faceDetectionCount}`);
+    }
+
+    /**
+     * Show animal-detected message
+     */
+    showAnimalDetectedMessage(data) {
+        const { animalCount, animals } = data;
+        const names = animals.map(a => a.class).join(', ');
+        const message = animalCount > 1
+            ? `🐾 ${animalCount} pets detectados! (${names})`
+            : `🐾 Pet detectado! (${names})`;
+        this.showMessage(message, 'success');
+        console.log(`🐾 Animal detection event: ${names}`);
     }
 
     /**

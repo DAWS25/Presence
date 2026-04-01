@@ -26,6 +26,7 @@ class PresenceHistory {
 
         if (window.eventManager && !window.__presenceHistoryListenerAdded) {
             window.eventManager.on('faceDetected', (data) => this.processDetections(data));
+            window.eventManager.on('animalDetected', (data) => this.processAnimalDetections(data));
             window.__presenceHistoryListenerAdded = true;
         } else if (!window.eventManager) {
             console.warn('EventManager não encontrado para PresenceHistory');
@@ -53,6 +54,25 @@ class PresenceHistory {
             snapshot,
             faceCount: typeof data?.faceCount === 'number' ? data.faceCount : boxes.length,
             personName: knownName,
+        });
+        this.render();
+    }
+
+    /**
+     * Process an animal detection event and add it to the events panel.
+     */
+    processAnimalDetections(data) {
+        const { animals = [], snapshot = null, timestamp = new Date().toISOString(), animalCount = 0 } = data || {};
+        const names = animals.map(a => a.class).join(', ');
+
+        this.events.unshift({
+            timestamp,
+            snapshot,
+            faceCount: 0,
+            animalCount,
+            animalNames: names,
+            isAnimal: true,
+            personName: null,
         });
         this.render();
     }
@@ -258,8 +278,26 @@ class PresenceHistory {
                 : '<div class="events-empty">Sem imagem</div>';
 
             const detectionTitle = window.i18n ? window.i18n.t('events.detection.title') : 'Deteccao';
+            const animalTitle = window.i18n ? window.i18n.t('events.detection.animal') : 'Pet Detected';
             const personName = eventItem.personName || (window.i18n ? window.i18n.t('events.detection.unknown') : 'Unknown presence');
             const eventIndex = this.events.indexOf(eventItem);
+
+            if (eventItem.isAnimal) {
+                return `
+                    <div class="event-card event-card-clickable" data-event-index="${eventIndex}">
+                        ${imgHtml}
+                        <div class="event-info">
+                            <div class="event-header">
+                                <div class="event-title">\ud83d\udc3e ${animalTitle}</div>
+                                <div class="event-time">${timeStr}</div>
+                            </div>
+                            <div class="event-person">${eventItem.animalNames}</div>
+                            <div class="event-meta">Pets: ${eventItem.animalCount}</div>
+                        </div>
+                        <span class="event-card-expand">\ud83d\udc46</span>
+                    </div>
+                `;
+            }
 
             return `
                 <div class="event-card event-card-clickable" data-event-index="${eventIndex}">
@@ -350,7 +388,9 @@ class PresenceHistory {
         const t = (key) => window.i18n ? window.i18n.t(key) : key;
         const timeStr = new Date(eventItem.timestamp).toLocaleTimeString();
         const dateStr = new Date(eventItem.timestamp).toLocaleDateString();
-        const personName = eventItem.personName || t('events.detection.unknown');
+        const personName = eventItem.isAnimal
+            ? eventItem.animalNames
+            : (eventItem.personName || t('events.detection.unknown'));
 
         const imgHtml = eventItem.snapshot
             ? `<img class="event-detail-img" src="${eventItem.snapshot}" alt="Face" />`

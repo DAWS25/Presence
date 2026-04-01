@@ -73,6 +73,7 @@ class PresenceApp {
             
             // Load COCO-SSD for animal detection
             if (window.animalDetector) {
+                window.animalDetector.getSnapshot = () => this.getSnapshot();
                 await window.animalDetector.load();
             }
 
