@@ -35,8 +35,8 @@ Resources:
 
 Outputs:
   EdgeCorsFunctionVersion:
-    Description: Lambda@Edge versioned ARN for CloudFront association (origin-response)
-    Value: !Ref EdgeCorsFunction.Version
+    Description: Lambda@Edge alias ARN for CloudFront association
+    Value: !Ref EdgeCorsFunctionAliaslive
     Export:
       Name: !Sub "${TenantId}-${EnvId}-EdgeCorsFunctionVersion"
   EdgeCorsFunctionArn:

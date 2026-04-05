@@ -35,8 +35,8 @@ Resources:
 
 Outputs:
   EdgeHcFunctionVersion:
-    Description: Lambda@Edge healthcheck versioned ARN for CloudFront association
-    Value: !Ref EdgeHcFunction.Version
+    Description: Lambda@Edge alias ARN for CloudFront association
+    Value: !Ref EdgeHcFunctionAliaslive
     Export:
       Name: !Sub "${TenantId}-${EnvId}-EdgeHcFunctionVersion"
   EdgeHcFunctionArn:

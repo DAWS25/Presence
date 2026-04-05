@@ -35,8 +35,8 @@ Resources:
 
 Outputs:
   EdgeRootFunctionVersion:
-    Description: Lambda@Edge root redirect versioned ARN for CloudFront association
-    Value: !Ref EdgeRootFunction.Version
+    Description: Lambda@Edge alias ARN for CloudFront association
+    Value: !Ref EdgeRootFunctionAliaslive
     Export:
       Name: !Sub "${TenantId}-${EnvId}-EdgeRootFunctionVersion"
   EdgeRootFunctionArn:
