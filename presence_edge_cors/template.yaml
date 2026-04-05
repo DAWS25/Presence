@@ -33,9 +33,17 @@ Resources:
                 - edgelambda.amazonaws.com
             Action: 'sts:AssumeRole'
 
+  EdgeCorsFunctionVersionParam:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${TenantId}/${EnvId}/EdgeCorsFunctionVersion"
+      Type: String
+      Value: !Ref EdgeCorsFunction.Version
+      Description: Latest Lambda@Edge CORS version ARN for CloudFront
+
 Outputs:
   EdgeCorsFunctionVersion:
-    Description: Lambda@Edge alias ARN for CloudFront association
+    Description: Lambda@Edge alias ARN (stable across deploys)
     Value: !Ref EdgeCorsFunctionAliaslive
     Export:
       Name: !Sub "${TenantId}-${EnvId}-EdgeCorsFunctionVersion"
