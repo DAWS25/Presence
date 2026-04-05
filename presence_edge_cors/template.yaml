@@ -3,6 +3,11 @@ Transform: AWS::Serverless-2016-10-31
 Description: Lambda@Edge origin-response function for CORS / FedCM headers
 
 Parameters:
+  TenantId:
+    Type: String
+    Default: tenant
+    Description: Tenant identifier used to prefix exported outputs.
+
   EnvId:
     Type: String
     Default: project
@@ -33,9 +38,9 @@ Outputs:
     Description: Lambda@Edge versioned ARN for CloudFront association (origin-response)
     Value: !Ref EdgeCorsFunction.Version
     Export:
-      Name: !Sub "${EnvId}-EdgeCorsFunctionVersion"
+      Name: !Sub "${TenantId}-${EnvId}-EdgeCorsFunctionVersion"
   EdgeCorsFunctionArn:
     Description: Lambda@Edge function ARN
     Value: !GetAtt EdgeCorsFunction.Arn
     Export:
-      Name: !Sub "${EnvId}-EdgeCorsFunctionArn"
+      Name: !Sub "${TenantId}-${EnvId}-EdgeCorsFunctionArn"

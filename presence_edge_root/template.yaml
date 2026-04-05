@@ -3,6 +3,11 @@ Transform: AWS::Serverless-2016-10-31
 Description: Lambda@Edge root redirect for Presence
 
 Parameters:
+  TenantId:
+    Type: String
+    Default: tenant
+    Description: Tenant identifier used to prefix exported outputs.
+
   EnvId:
     Type: String
     Default: project
@@ -33,9 +38,9 @@ Outputs:
     Description: Lambda@Edge root redirect versioned ARN for CloudFront association
     Value: !Ref EdgeRootFunction.Version
     Export:
-      Name: !Sub "${EnvId}-EdgeRootFunctionVersion"
+      Name: !Sub "${TenantId}-${EnvId}-EdgeRootFunctionVersion"
   EdgeRootFunctionArn:
     Description: Lambda@Edge root redirect function ARN
     Value: !GetAtt EdgeRootFunction.Arn
     Export:
-      Name: !Sub "${EnvId}-EdgeRootFunctionArn"
+      Name: !Sub "${TenantId}-${EnvId}-EdgeRootFunctionArn"

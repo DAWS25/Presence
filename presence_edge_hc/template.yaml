@@ -3,6 +3,11 @@ Transform: AWS::Serverless-2016-10-31
 Description: Lambda@Edge healthcheck for Presence
 
 Parameters:
+  TenantId:
+    Type: String
+    Default: tenant
+    Description: Tenant identifier used to prefix exported outputs.
+
   EnvId:
     Type: String
     Default: project
@@ -33,9 +38,9 @@ Outputs:
     Description: Lambda@Edge healthcheck versioned ARN for CloudFront association
     Value: !Ref EdgeHcFunction.Version
     Export:
-      Name: !Sub "${EnvId}-EdgeHcFunctionVersion"
+      Name: !Sub "${TenantId}-${EnvId}-EdgeHcFunctionVersion"
   EdgeHcFunctionArn:
     Description: Lambda@Edge healthcheck function ARN
     Value: !GetAtt EdgeHcFunction.Arn
     Export:
-      Name: !Sub "${EnvId}-EdgeHcFunctionArn"
+      Name: !Sub "${TenantId}-${EnvId}-EdgeHcFunctionArn"

@@ -36,7 +36,12 @@ Parameters:
   TenantId:
     Type: String
     Default: presence-env
-    Description: Tenant ID for cross-stack references to shared account-level resources (VPC, DB)
+    Description: Tenant ID for cross-stack references to DB and app-level resources
+
+  VPCTenantId:
+    Type: String
+    Default: vpc-tenant
+    Description: Tenant ID for VPC and subnet cross-stack references
 
   Runtime:
     Type: String
@@ -89,7 +94,7 @@ Resources:
         SubnetIds:
           Fn::Split:
             - ","
-            - Fn::ImportValue: !Sub "${TenantId}-IsolatedSubnetIds"
+            - Fn::ImportValue: !Sub "${VPCTenantId}-IsolatedSubnetIds"
       Events:
         PresenceApi:
           Type: HttpApi
@@ -102,12 +107,12 @@ Outputs:
     Description: "API Gateway host name for Presence function"
     Value: !Sub "${ServerlessHttpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}"
     Export:
-      Name: !Sub "${EnvId}-PresenceAPIHost"
+      Name: !Sub "${TenantId}-${EnvId}-PresenceAPIHost"
   PresenceApi:
     Description: "API Gateway endpoint URL for Presence function"
     Value: !Sub "https://${ServerlessHttpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}/"
     Export:
-      Name: !Sub "${EnvId}-PresenceApiEndpoint"
+      Name: !Sub "${TenantId}-${EnvId}-PresenceApiEndpoint"
   PresenceFunction:
     Description: "Hello World Lambda Function ARN"
     Value: !GetAtt PresenceFunction.Arn
