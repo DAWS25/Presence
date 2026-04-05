@@ -38,13 +38,21 @@ Parameters:
     Default: presence-env
     Description: Tenant ID for cross-stack references to shared account-level resources (VPC, DB)
 
+  Runtime:
+    Type: String
+    Default: python3.14
+    AllowedValues:
+      - python3.14
+      - python3.12
+    Description: Lambda runtime environment
+
 Resources:
   PresenceFunction:
     Type: AWS::Serverless::Function 
     Properties:
       CodeUri: .
       Handler: presence_sam.app.handler
-      Runtime: python3.12
+      Runtime: !Ref Runtime
       Architectures:
         - !Ref LambdaArchitecture
       Environment:
