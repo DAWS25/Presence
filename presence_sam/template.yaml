@@ -75,7 +75,7 @@ Resources:
           DB_IAM_AUTH: "true"
           AWS_REGION_NAME: !Ref AWS::Region
           GOOGLE_CLIENT_ID:
-            Fn::ImportValue: !Sub "${TenantId}-${EnvId}-GOOGLE-CLIENT-ID"
+            Fn::ImportValue: !Sub "${TenantId}-GOOGLE-CLIENT-ID"
       Policies:
         - Version: "2012-10-17"
           Statement:
