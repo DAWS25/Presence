@@ -19,7 +19,7 @@ Resources:
     Properties:
       CodeUri: src
       Handler: presence_edge_hc.app.handler
-      Runtime: python3.12
+      Runtime: python3.14
       MemorySize: 128
       Timeout: 5
       AutoPublishAlias: live
