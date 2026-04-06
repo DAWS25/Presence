@@ -3,6 +3,17 @@
    Initialises Google Identity Services One Tap prompt.
    ======================================== */
 
+var presenceAuth = (function () {
+    'use strict';
+
+    var _showSignIn = false;
+
+    return {
+        showSignIn: function () { return _showSignIn; },
+        setShowSignIn: function (val) { _showSignIn = !!val; },
+    };
+})();
+
 function googleSignInInit() {
     'use strict';
 
@@ -63,6 +74,21 @@ function googleSignInInit() {
      * Initialise Google Identity Services One Tap prompt.
      */
     async function init() {
+        if (!presenceAuth.showSignIn()) {
+            console.log('Sign-in disabled (presenceAuth.showSignIn=false)');
+            return;
+        }
+
+        // Load Google Identity Services library on demand
+        await new Promise((resolve, reject) => {
+            if (typeof google !== 'undefined' && google.accounts) { resolve(); return; }
+            const s = document.createElement('script');
+            s.src = 'https://accounts.google.com/gsi/client';
+            s.onload = resolve;
+            s.onerror = () => reject(new Error('Failed to load Google Identity Services'));
+            document.head.appendChild(s);
+        });
+
         let GOOGLE_CLIENT_ID;
         try {
             GOOGLE_CLIENT_ID = await fetchClientId();
@@ -80,10 +106,6 @@ function googleSignInInit() {
 
         if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID.startsWith('$')) {
             console.warn('Google Client ID not configured — sign-in disabled');
-            return;
-        }
-        if (typeof google === 'undefined' || !google.accounts) {
-            console.warn('Google Identity Services library not loaded');
             return;
         }
 
