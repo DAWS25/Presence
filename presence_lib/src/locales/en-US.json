@@ -28,7 +28,7 @@
     "init.faceapi.title": "Face-API Loaded",
     "init.faceapi.message": "Face detection and recognition ready",
     "init.cocossd.title": "COCO-SSD Loaded",
-    "init.cocossd.message": "Object detection ready",
+    "init.cocossd.message": "Animal detection ready",
     "events.detection.title": "Detection",
     "events.detection.animal": "Pet Detected",
     "events.detection.unknown": "Unknown presence",

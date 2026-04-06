@@ -28,7 +28,7 @@
     "init.faceapi.title": "Face-API Carregado",
     "init.faceapi.message": "Deteccao e reconhecimento de rostos prontos",
     "init.cocossd.title": "COCO-SSD Carregado",
-    "init.cocossd.message": "Deteccao de objetos pronta",
+    "init.cocossd.message": "Deteccao de animais pronta",
     "events.detection.title": "Deteccao",
     "events.detection.animal": "Pet Detectado",
     "events.detection.unknown": "Presenca desconhecida",
