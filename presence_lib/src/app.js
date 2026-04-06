@@ -48,7 +48,7 @@ class PresenceApp {
             window.presenceHistory.addWelcomeMessage(
                 window.i18n.t('init.welcome.title'),
                 message,
-                '👋'
+                '<img src="https://eadn-wc05-13372774.nxedge.io/wp-content/uploads/elementor/thumbs/cropped-favicon-qqqiifr4pj19hw4w6aohtppa90f2avsb3lijncelcg.png" alt="LINUXtips" style="width:1.4em;height:1.4em;vertical-align:middle">'
             );
         }
         

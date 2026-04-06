@@ -24,7 +24,7 @@
     "about.version": "Versao:",
     "about.status": "Status:",
     "init.welcome.title": "Bem-vindo",
-    "init.welcome.message": "Inicializando aplicacao...",
+    "init.welcome.message": "Feito com ❤️ na <a href='https://linuxtips.io/descomplicando-aws/' target='_blank' class='event-link'>linuxtips.io</a>",
     "init.faceapi.title": "Face-API Carregado",
     "init.faceapi.message": "Deteccao e reconhecimento de rostos prontos",
     "init.cocossd.title": "COCO-SSD Carregado",
