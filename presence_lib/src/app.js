@@ -80,7 +80,7 @@ class PresenceApp {
                 window.presenceHistory.addWelcomeMessage(
                     window.i18n.t('init.faceapi.title'),
                     window.i18n.t('init.faceapi.message'),
-                    '�'
+                    '🧑'
                 );
             }
             
