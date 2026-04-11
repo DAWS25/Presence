@@ -46,7 +46,7 @@ Resources:
         Comment: !Sub "Static distribution for ${DomainName}"
         DefaultCacheBehavior:
           TargetOriginId: S3Origin
-          ViewerProtocolPolicy: https-only
+          ViewerProtocolPolicy: redirect-to-https
           AllowedMethods:
             - GET
             - HEAD
@@ -68,7 +68,7 @@ Resources:
         CacheBehaviors:
           - PathPattern: "/edge/hc/*"
             TargetOriginId: S3Origin
-            ViewerProtocolPolicy: https-only
+            ViewerProtocolPolicy: redirect-to-https
             AllowedMethods:
               - GET
               - HEAD
@@ -89,7 +89,7 @@ Resources:
                   Fn::ImportValue: !Sub "${EnvId}-EdgeCorsFunctionVersion"
           - PathPattern: "/app/*"
             TargetOriginId: S3Origin
-            ViewerProtocolPolicy: https-only
+            ViewerProtocolPolicy: redirect-to-https
             AllowedMethods:
               - GET
               - HEAD
@@ -110,7 +110,7 @@ Resources:
                   Fn::ImportValue: !Sub "${EnvId}-EdgeCorsFunctionVersion"
           - PathPattern: "/fn/*"
             TargetOriginId: ApiOrigin
-            ViewerProtocolPolicy: https-only
+            ViewerProtocolPolicy: redirect-to-https
             AllowedMethods:
               - GET
               - HEAD
