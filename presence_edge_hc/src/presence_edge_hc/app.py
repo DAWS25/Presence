@@ -1,11 +1,31 @@
 import json
 import ssl
 import urllib.request
+import boto3
 
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
+_ssm_client = None
+_api_host_cache = {}
+
+
+def _get_ssm_client():
+    global _ssm_client
+    if _ssm_client is None:
+        _ssm_client = boto3.client("ssm", region_name="us-east-1")
+    return _ssm_client
+
+
+def _get_api_host(tenant_id, env_id):
+    """Fetch the API Gateway host from SSM (cached across invocations)."""
+    key = f"/{tenant_id}/{env_id}/PresenceAPIHost"
+    if key not in _api_host_cache:
+        resp = _get_ssm_client().get_parameter(Name=key)
+        _api_host_cache[key] = resp["Parameter"]["Value"]
+    return _api_host_cache[key]
 
 def _json_response(status_code, body):
     """Build a CloudFront-compatible JSON response."""
@@ -35,21 +55,26 @@ def _get_host(request):
 # ---------------------------------------------------------------------------
 
 def _fetch_origin_health(host):
-    """Fetch origin healthcheck at /fn/__hc and return parsed JSON.
+    """Fetch origin healthcheck at /fn/__hc from the API Gateway origin.
 
-    The host header may include a port (e.g. example.com:10443).
-    When running locally inside Docker (SAM), falls back to the proxy
-    container reachable via devbox_net.
+    Calls the API Gateway directly (via SSM-cached host) to avoid recursion
+    through CloudFront, which blocks outbound calls to the same distribution.
+    When running locally (host includes a port), falls back to the proxy container.
     """
     port = ""
     if ":" in host:
         _, port = host.rsplit(":", 1)
 
-    targets = [host]
     if port:
-        targets.append(f"proxy:{port}")
+        # Local dev: try host first, then proxy container
+        targets = [host, f"proxy:{port}"]
     else:
-        targets.append("proxy")
+        # Production: call API Gateway origin directly
+        try:
+            api_host = _get_api_host("Presence", "Main")
+            targets = [api_host]
+        except Exception:
+            targets = [host]
 
     ctx = ssl.create_default_context()
     ctx.check_hostname = False
@@ -60,7 +85,7 @@ def _fetch_origin_health(host):
         try:
             url = f"https://{target}/fn/__hc"
             req = urllib.request.Request(url, method="GET")
-            req.add_header("Host", host)
+            req.add_header("Host", target)
             with urllib.request.urlopen(req, timeout=5, context=ctx) as resp:
                 if resp.status != 200:
                     last_error = Exception(f"origin returned {resp.status}")

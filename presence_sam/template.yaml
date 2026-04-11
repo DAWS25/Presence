@@ -102,6 +102,14 @@ Resources:
             Path: "/{proxy+}"
             Method: "ANY"
 
+  PresenceAPIHostParam:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${TenantId}/${EnvId}/PresenceAPIHost"
+      Type: String
+      Value: !Sub "${ServerlessHttpApi}.execute-api.${AWS::Region}.${AWS::URLSuffix}"
+      Description: API Gateway host name for origin health checks
+
 Outputs:
   PresenceAPIHost:
     Description: "API Gateway host name for Presence function"

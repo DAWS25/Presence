@@ -32,6 +32,12 @@ Resources:
                 - lambda.amazonaws.com
                 - edgelambda.amazonaws.com
             Action: 'sts:AssumeRole'
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action: ssm:GetParameter
+              Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${TenantId}/${EnvId}/PresenceAPIHost"
 
   EdgeHcFunctionVersionParam:
     Type: AWS::SSM::Parameter
