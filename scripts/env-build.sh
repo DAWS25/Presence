@@ -2,7 +2,12 @@
 set -ex
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DIR="$(dirname "$SCRIPT_DIR")"
-# 
+
+# Ensure Python 3.14 (from devbox venv) is on PATH for sam build
+if [ -d "$DIR/.venv/bin" ]; then
+    export PATH="$DIR/.venv/bin:$PATH"
+fi
+
 echo "📦 Packaging Presence for deployment..."
 WEB_DIR="$DIR/presence_web"
 # Check if node_modules is installed
