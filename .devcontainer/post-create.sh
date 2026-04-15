@@ -24,12 +24,30 @@ if ! command -v devbox &> /dev/null
 then
     echo "devbox could not be found, installing"
     export PATH="$HOME/.devbox/bin:$PATH"
-    mkdir -p /nix/var/nix/db
-    sudo chown -R $(whoami) /nix
     curl -fsSL https://get.jetify.com/devbox | bash -s -- --force
-    yes | devbox install 
 fi
-sudo chown -R $USER /nix
+# Ensure nix is available and daemon is running
+if [ -f /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then
+    . /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh
+fi
+if command -v nix-daemon > /dev/null 2>&1 && ! pgrep -x nix-daemon > /dev/null 2>&1; then
+    echo "Starting nix daemon..."
+    sudo nix-daemon &
+    DAEMON_PID=$!
+    # Wait for daemon socket (up to 30s)
+    for i in $(seq 1 30); do
+        if [ -S /nix/var/nix/daemon-socket/socket ]; then
+            echo "Nix daemon socket ready."
+            break
+        fi
+        echo "Waiting for nix daemon socket... ($i/30)"
+        sleep 1
+    done
+fi
+if command -v devbox &> /dev/null; then
+    echo "Running devbox install..."
+    yes | devbox install || echo "WARNING: devbox install failed, will retry on shell start"
+fi
 
 # DirEnv setup
 touch .envrc
