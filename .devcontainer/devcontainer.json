@@ -8,8 +8,7 @@
       "userUid": "1000",
       "userGid": "1000"
     },
-    "ghcr.io/devcontainers/features/docker-in-docker:2.14.0": {},
-    "ghcr.io/devcontainers-extra/features/direnv:1": {}
+    "ghcr.io/devcontainers/features/docker-in-docker:2.14.0": {}
   },
   "postCreateCommand": "./.devcontainer/post-create.sh",
 
