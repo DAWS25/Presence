@@ -4,17 +4,6 @@
   "build": {
     "dockerfile": "Dockerfile"
   },
-  "features": {
-    "ghcr.io/devcontainers/features/common-utils:2": {
-      "username": "vscode",
-      "userUid": "1000",
-      "userGid": "1000",
-      "installZsh": false,
-      "installOhMyZsh": false,
-      "installOhMyZshConfig": false
-    },
-    "ghcr.io/devcontainers/features/docker-in-docker:2.14.0": {}
-  },
   "postCreateCommand": "./.devcontainer/post-create.sh",
 
   "forwardPorts": [
