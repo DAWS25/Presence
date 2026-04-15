@@ -6,3 +6,6 @@ RUN apt-get update \
        curl \
        ca-certificates \
     && rm -rf /var/lib/apt/lists/*
+
+# Ensure /tmp is writable for docker-in-docker feature
+RUN chmod 1777 /tmp
