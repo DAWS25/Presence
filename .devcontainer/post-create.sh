@@ -32,11 +32,6 @@ fi
 sudo chown -R $USER /nix
 
 # DirEnv setup
-if ! command -v direnv &> /dev/null
-then
-    echo "direnv could not be found, installing..."
-    ${PKG_INSTALL_CMD} direnv
-fi
 touch .envrc
 direnv allow .
 # 

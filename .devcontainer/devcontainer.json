@@ -1,7 +1,9 @@
 {
   "name": "Presence DevContainer",
   
-  "image": "debian:bookworm",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
   "features": {
     "ghcr.io/devcontainers/features/common-utils:2": {
       "username": "vscode",
