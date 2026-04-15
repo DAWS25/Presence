@@ -19,6 +19,38 @@ fi
 # Update package lists
 ${PKG_UPDATE_CMD}
 
+# Docker CLI setup (Codespaces provides the Docker daemon via host socket)
+if ! command -v docker &> /dev/null; then
+    echo "Docker not found, installing..."
+    . /etc/os-release
+    DOCKER_DISTRO="debian"
+    if [ "$ID" = "ubuntu" ]; then DOCKER_DISTRO="ubuntu"; fi
+    sudo install -m 0755 -d /etc/apt/keyrings
+    curl -fsSL "https://download.docker.com/linux/${DOCKER_DISTRO}/gpg" | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+    sudo chmod a+r /etc/apt/keyrings/docker.gpg
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/${DOCKER_DISTRO} ${VERSION_CODENAME} stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    ${PKG_UPDATE_CMD}
+    ${PKG_INSTALL_CMD} docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+fi
+sudo groupadd docker 2>/dev/null || true
+sudo usermod -aG docker ${USER}
+
+# Start Docker daemon if not already running (e.g. no host socket)
+if ! docker info &> /dev/null 2>&1; then
+    echo "Starting Docker daemon..."
+    sudo nohup dockerd > /tmp/dockerd.log 2>&1 &
+    for i in $(seq 1 15); do
+        if docker info &> /dev/null 2>&1; then
+            echo "Docker daemon started successfully"
+            break
+        fi
+        sleep 1
+    done
+    if ! docker info &> /dev/null 2>&1; then
+        echo "WARNING: Docker daemon could not start. Check /tmp/dockerd.log"
+    fi
+fi
+
 # Devbox setup
 if ! command -v devbox &> /dev/null
 then

@@ -1,13 +1,7 @@
 {
   "name": "Presence DevContainer",
   
-  "build": {
-    "dockerfile": "Dockerfile"
-  },
-
-  "features": {
-    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
-  },
+  "image": "mcr.microsoft.com/devcontainers/base:bookworm",
 
   "postCreateCommand": "./.devcontainer/post-create.sh",
 

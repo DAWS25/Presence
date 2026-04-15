@@ -18,7 +18,7 @@ if ! command -v node &> /dev/null; then
   ln -s "$(which node)" "$HOME/.local/bin/node"
 fi
 
-# Docker is provided by the devcontainer docker-in-docker feature.
+# Docker is provided by the devcontainer post-create.sh script.
 # No manual installation needed.
 
 # Python tools setup
