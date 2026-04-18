@@ -51,7 +51,7 @@ Please open a discussion if you have any issues running this project.
 
 01 - [Como executar o projeto usando GitHub Codespaces e DevBox](https://youtu.be/st0muy6H4zs?si=mCcbemqCIvbVT6Fu)
 
-
+02 - [Como funciona a aplicaçao](https://linuxtips.io)
 
 # Join us!
 
