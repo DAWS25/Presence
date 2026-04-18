@@ -34,6 +34,7 @@ RUN curl -fsSL "https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYT
     && ln -sf /usr/local/bin/pip3.14 /usr/local/bin/pip3 \
     && ln -sf /usr/local/bin/pip3.14 /usr/local/bin/pip \
     && python3 -m pip install --upgrade pip \
+    && python3 -m pip install livereload \
     && rm -rf /tmp/python.tgz "/tmp/Python-${PYTHON_VERSION}"
 
 # Prepare Nix store for vscode user
