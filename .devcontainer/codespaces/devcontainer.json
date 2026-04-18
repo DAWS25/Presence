@@ -8,7 +8,7 @@
     "ghcr.io/devcontainers/features/github-cli": {}
   },
 
-  "postCreateCommand": "./.devcontainer/codespaces/post-create.sh",
+  "postCreateCommand": "source ./.devcontainer/codespaces/post-create.sh",
 
   "forwardPorts": [
     10080,
