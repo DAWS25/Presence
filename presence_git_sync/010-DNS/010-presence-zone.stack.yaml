@@ -1,0 +1,9 @@
+template-file-path: git-sync/000-Modules/HostedZone/dns-zone.cform.yaml
+
+parameters: 
+    TenantId: Presence
+    DomainName: presence.daws25.com
+
+tags:
+    TenantId: Presence
+

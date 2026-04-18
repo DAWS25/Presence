@@ -1,0 +1,10 @@
+template-file-path: git-sync/100-IncPerm/300-Presence/040-Distribution/040-cloudfront-distribution.cform.yaml
+
+parameters:
+    TenantId: Presence
+    EnvId: Main
+
+tags:
+    TenantId: Presence
+    EnvId: Main
+

@@ -1,0 +1,36 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: S3 bucket for static web app (html, js, css, ...)
+
+Parameters:
+  TenantId:
+    Type: String
+    Default: main
+    Description: Tenant identifier used to prefix exported outputs.
+
+  EnvId:
+    Type: String
+    Default: Main
+    Description: Environment identifier used to prefix exported outputs.
+
+Resources:
+  WebAppBucket:
+    Type: AWS::S3::Bucket
+
+Outputs:
+  WebAppBucketName:
+    Description: Static web app bucket name
+    Value: !Ref WebAppBucket
+    Export:
+      Name: !Sub "${TenantId}-${EnvId}-WebAppBucketName"
+
+  WebAppBucketArn:
+    Description: Static web app bucket ARN
+    Value: !GetAtt WebAppBucket.Arn
+    Export:
+      Name: !Sub "${TenantId}-${EnvId}-WebAppBucketArn"
+
+  WebAppBucketDomainName:
+    Description: Static web app bucket domain name
+    Value: !GetAtt WebAppBucket.RegionalDomainName
+    Export:
+      Name: !Sub "${TenantId}-${EnvId}-WebAppBucketDomainName"

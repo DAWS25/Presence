@@ -1,0 +1,34 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: "Route53 alias record pointing the domain to the CloudFront distribution"
+
+Parameters:
+  TenantId:
+    Type: String
+    Default: tenant
+    Description: Tenant identifier used to prefix exported outputs.
+
+  EnvId:
+    Type: String
+    Default: main
+    Description: Environment identifier used to prefix exported outputs.
+
+Resources:
+  DnsAlias:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId:
+        Fn::ImportValue: !Sub "${TenantId}-ZoneId"
+      Name:
+        Fn::ImportValue: !Sub "${TenantId}-DomainName"
+      Type: A
+      AliasTarget:
+        DNSName:
+          Fn::ImportValue: !Sub "${TenantId}-${EnvId}-DistributionDomainName"
+        HostedZoneId: Z2FDTNDATAQYW2  # Global CloudFront hosted zone ID
+
+Outputs:
+  AliasRecord:
+    Description: Route53 alias record for the root domain
+    Value:
+      Fn::ImportValue: !Sub "${TenantId}-DomainName"
+

@@ -1,0 +1,9 @@
+template-file-path: git-sync/100-IncPerm/300-Presence/005-Params/005-ssm-tenant-param.cform.yaml
+
+parameters:
+    TenantId: Presence
+    ParamName: GOOGLE-CLIENT-ID
+    ParamValue: ${PRESENCE_MAIN_GOOGLE_CLIENT_ID} 
+
+tags:
+    TenantId: Presence

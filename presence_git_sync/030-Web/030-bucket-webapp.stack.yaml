@@ -1,0 +1,7 @@
+template-file-path: git-sync/100-IncPerm/300-Presence/030-Web/030-bucket-webapp.cform.yaml
+
+parameters:
+    TenantId: Presence
+
+tags:
+    TenantId: Presence

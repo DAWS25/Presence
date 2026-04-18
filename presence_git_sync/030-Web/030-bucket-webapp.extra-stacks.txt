@@ -1,0 +1,6 @@
+Presence-Main-Web-sam-fn
+Presence-Main-Web-edge-auth
+Presence-Main-Edge-CORS
+Presence-Main-Edge-Health
+Presence-Main-Edge-Root
+aws-sam-cli-managed-default

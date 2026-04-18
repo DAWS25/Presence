@@ -40,7 +40,8 @@ Please open a discussion if you have any issues running this project.
 | `presence_edge_hc/` | Lambda@Edge function for CloudFront health checks |
 | `presence_edge_root/` | Lambda@Edge function for root path redirects |
 | `presence_proxy/` | Nginx reverse proxy config and custom error pages for local development |
-| `presence_cform/` | AWS CloudFormation templates (VPC, RDS, CloudFront, Route53, certificates) |
+| `presence_cform_samples/` | Sample CloudFormation templates for reference (VPC, RDS, CloudFront, etc.) |
+| `presence_git_sync/` | GitOps-managed CloudFormation stacks for automated deployment (DNS, certs, data, distribution, health checks) |
 | `presence_config/` | CloudFormation and scripts for AWS SSM parameters (OIDC config) |
 | `presence_cert/` | Local SSL certificates for HTTPS development |
 | `scripts/` | Shell scripts for dev workflows (build, deploy, service startup) |

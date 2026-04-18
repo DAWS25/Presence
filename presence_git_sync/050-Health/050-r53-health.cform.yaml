@@ -1,0 +1,82 @@
+Description: "Route53 health check for edge healthcheck endpoint"
+
+Parameters:
+  TenantId:
+    Type: String
+    Default: tenant
+    Description: Tenant identifier used to prefix exported outputs.
+
+  EnvId:
+    Type: String
+    Default: main
+    Description: Environment identifier used to prefix exported outputs.
+
+  RequestInterval:
+    Type: Number
+    Default: 30
+    Description: The number of seconds between the time that Route 53 gets a response from your
+      endpoint and the time that it sends the next health check request.
+  
+  FailureThreshold:
+    Type: Number
+    Default: 3
+    Description: The number of consecutive health check failures that Route 53 must observe
+
+  MeasureLatency:
+    Type: String
+    Default: false
+    AllowedValues:
+      - true
+      - false
+    Description: Whether to measure latency for the health check. Enabling this will add
+      additional cost but allows for latency-based routing and CloudWatch metrics on latency.
+
+  AlarmsTenantId:
+    Type: String
+    Default: IncPerm
+    Description: TenantId that owns the shared alarms SNS topic.
+
+Resources:
+  EdgeHealthCheck:
+    Type: AWS::Route53::HealthCheck
+    Properties:
+      HealthCheckConfig:
+        FullyQualifiedDomainName:
+          Fn::ImportValue: !Sub "${TenantId}-DomainName"
+        Port: 443
+        Type: HTTPS
+        ResourcePath: /edge/hc/ready
+        RequestInterval: !Ref RequestInterval
+        FailureThreshold: !Ref FailureThreshold
+        MeasureLatency: !Ref MeasureLatency
+        EnableSNI: true
+      HealthCheckTags:
+        - Key: Name
+          Value: !Sub "${TenantId}-${EnvId}-edge-healthcheck"
+
+  HealthCheckAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${TenantId}-${EnvId}-edge-healthcheck"
+      AlarmDescription: !Sub "${TenantId}-${EnvId} edge health check failure"
+      Namespace: AWS/Route53
+      MetricName: HealthCheckStatus
+      Dimensions:
+        - Name: HealthCheckId
+          Value: !Ref EdgeHealthCheck
+      Statistic: Minimum
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: LessThanThreshold
+      AlarmActions:
+        - Fn::ImportValue: !Sub "${AlarmsTenantId}-AlarmsTopicArn"
+      OKActions:
+        - Fn::ImportValue: !Sub "${AlarmsTenantId}-AlarmsTopicArn"
+
+Outputs:
+  HealthCheckId:
+    Description: Route53 Health Check ID
+    Value: !Ref EdgeHealthCheck
+    Export:
+      Name: !Sub "${TenantId}-${EnvId}-EdgeHealthCheckId"

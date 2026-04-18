@@ -1,0 +1,10 @@
+template-file-path: git-sync/100-IncPerm/300-Presence/050-Health/050-r53-health.cform.yaml
+
+parameters:
+    TenantId: Presence
+    EnvId: Main
+    AlarmsTenantId: IncPerm
+
+tags:
+    TenantId: Presence
+    EnvId: Main

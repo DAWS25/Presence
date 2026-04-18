@@ -1,0 +1,38 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: ACM Certificate with DNS validation for domain and wildcard subdomain
+
+Parameters:
+  TenantId:
+    Type: String
+    Default: project
+    Description: Tenant identifier used to prefix exported outputs.
+  
+Resources:
+  Certificate:
+    Type: AWS::CertificateManager::Certificate
+    Properties:
+      DomainName:
+        Fn::ImportValue: !Sub "${TenantId}-DomainName"
+      SubjectAlternativeNames:
+        - Fn::Sub:
+            - "*.${DomainName}"
+            - DomainName:
+                Fn::ImportValue: !Sub "${TenantId}-DomainName"
+      ValidationMethod: DNS
+      DomainValidationOptions:
+        - DomainName:
+            Fn::ImportValue: !Sub "${TenantId}-DomainName"
+          HostedZoneId:
+            Fn::ImportValue: !Sub "${TenantId}-ZoneId"
+      Tags:
+        - Key: Name
+          Value: !Sub "${TenantId}-certificate"
+        - Key: TenantId
+          Value: !Ref TenantId
+
+Outputs:
+  CertificateArn:
+    Description: ARN of the ACM certificate
+    Value: !Ref Certificate
+    Export:
+      Name: !Sub "${TenantId}-CertificateArn"

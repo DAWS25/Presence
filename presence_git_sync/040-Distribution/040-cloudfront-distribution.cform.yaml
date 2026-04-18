@@ -1,0 +1,184 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: "CloudFront distribution with S3 origin, API Gateway origin, and Lambda@Edge"
+
+Parameters:
+  TenantId:
+    Type: String
+    Default: tenant
+    Description: Tenant identifier used to prefix exported outputs.
+
+  EnvId:
+    Type: String
+    Default: env
+    Description: Environment identifier used to prefix exported outputs.
+
+Resources:
+  # Origin Access Control for CloudFront to access S3
+  OriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub "${TenantId}-${EnvId}-OAC"
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+        Description: !Sub "Origin Access Control for ${TenantId}-${EnvId}"
+
+  # CloudFront Distribution
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Aliases:
+          - Fn::ImportValue: !Sub "${TenantId}-DomainName"
+        Comment: !Sub "Static distribution for ${TenantId}-${EnvId}"
+        DefaultCacheBehavior:
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods:
+            - GET
+            - HEAD
+          CachedMethods:
+            - GET
+            - HEAD
+          Compress: true
+          ForwardedValues:
+            QueryString: false
+            Cookies:
+              Forward: none
+          LambdaFunctionAssociations:
+            - EventType: viewer-request
+              LambdaFunctionARN:
+                !Sub '{{resolve:ssm:/${TenantId}/${EnvId}/EdgeRootFunctionVersion}}'
+            - EventType: origin-response
+              LambdaFunctionARN:
+                !Sub '{{resolve:ssm:/${TenantId}/${EnvId}/EdgeCorsFunctionVersion}}'
+        CacheBehaviors:
+          - PathPattern: "/edge/hc/*"
+            TargetOriginId: S3Origin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods:
+              - GET
+              - HEAD
+            CachedMethods:
+              - GET
+              - HEAD
+            Compress: true
+            ForwardedValues:
+              QueryString: false
+              Cookies:
+                Forward: none
+            LambdaFunctionAssociations:
+              - EventType: viewer-request
+                LambdaFunctionARN:
+                  !Sub '{{resolve:ssm:/${TenantId}/${EnvId}/EdgeHcFunctionVersion}}'
+              - EventType: origin-response
+                LambdaFunctionARN:
+                  !Sub '{{resolve:ssm:/${TenantId}/${EnvId}/EdgeCorsFunctionVersion}}'
+          - PathPattern: "/app/*"
+            TargetOriginId: S3Origin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods:
+              - GET
+              - HEAD
+            CachedMethods:
+              - GET
+              - HEAD
+            Compress: true
+            ForwardedValues:
+              QueryString: true
+              Cookies:
+                Forward: all
+            LambdaFunctionAssociations:
+              - EventType: origin-request
+                LambdaFunctionARN:
+                  !Sub '{{resolve:ssm:/${TenantId}/${EnvId}/EdgeFunctionVersion}}'
+              - EventType: origin-response
+                LambdaFunctionARN:
+                  !Sub '{{resolve:ssm:/${TenantId}/${EnvId}/EdgeCorsFunctionVersion}}'
+          - PathPattern: "/fn/*"
+            TargetOriginId: ApiOrigin
+            ViewerProtocolPolicy: redirect-to-https
+            AllowedMethods:
+              - GET
+              - HEAD
+              - OPTIONS
+              - PUT
+              - POST
+              - PATCH
+              - DELETE
+            CachedMethods:
+              - GET
+              - HEAD
+            Compress: false
+            ForwardedValues:
+              QueryString: true
+              Headers:
+                - Authorization
+                - Content-Type
+              Cookies:
+                Forward: all
+        DefaultRootObject: index.html
+        Enabled: true
+        Origins:
+          - Id: S3Origin
+            DomainName:
+              Fn::ImportValue: !Sub "${TenantId}-${EnvId}-WebAppBucketDomainName"
+            OriginAccessControlId: !Ref OriginAccessControl
+            S3OriginConfig:
+              OriginAccessIdentity: ""
+          - Id: ApiOrigin
+            DomainName:
+              Fn::ImportValue: !Sub "${TenantId}-${EnvId}-PresenceAPIHost"
+            CustomOriginConfig:
+              OriginProtocolPolicy: https-only
+              OriginSSLProtocols:
+                - TLSv1.2
+              OriginReadTimeout: 30
+              OriginKeepaliveTimeout: 5
+        ViewerCertificate:
+          AcmCertificateArn:
+            Fn::ImportValue: !Sub "${TenantId}-CertificateArn"
+          SslSupportMethod: sni-only
+
+  # Bucket Policy to allow CloudFront access via OAC
+  BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    DependsOn: CloudFrontDistribution
+    Properties:
+      Bucket:
+        Fn::ImportValue: !Sub "${TenantId}-${EnvId}-WebAppBucketName"
+      PolicyDocument:
+        Statement:
+          - Sid: AllowCloudFrontServicePrincipal
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource:
+              Fn::Sub:
+                - "arn:aws:s3:::${BucketName}/*"
+                - BucketName:
+                    Fn::ImportValue: !Sub "${TenantId}-${EnvId}-WebAppBucketName"
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}"
+
+Outputs:
+  DistributionId:
+    Description: CloudFront distribution ID
+    Value: !Ref CloudFrontDistribution
+    Export:
+      Name: !Sub "${TenantId}-${EnvId}-DistributionId"
+
+  DistributionDomainName:
+    Description: CloudFront distribution domain name
+    Value: !GetAtt CloudFrontDistribution.DomainName
+    Export:
+      Name: !Sub "${TenantId}-${EnvId}-DistributionDomainName"
+
+  OriginAccessControlId:
+    Description: Origin Access Control ID
+    Value: !Ref OriginAccessControl
+    Export:
+      Name: !Sub "${TenantId}-${EnvId}-OACId"
