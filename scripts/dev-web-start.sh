@@ -3,6 +3,11 @@ set -ex
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 DIR="$(dirname "$SCRIPT_DIR")"
 
+# Activate venv so python3 can find livereload and other pip packages
+if [ -f "$DIR/.venv/bin/activate" ]; then
+  source "$DIR/.venv/bin/activate"
+fi
+
 WEB_DIR="$DIR/presence_web"
 
 echo "🚀 Starting Presence development server..."

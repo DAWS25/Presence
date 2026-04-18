@@ -31,6 +31,11 @@ if ! pip show awscli &> /dev/null; then
 else
   echo "awscli already installed, skipping"
 fi
+if ! pip show livereload &> /dev/null; then
+  pip install livereload >> devbox.log 2>&1
+else
+  echo "livereload already installed, skipping"
+fi
 echo "Installing python dependencies for presence_sam"
 if ! pip show fastapi &> /dev/null; then
   pip install -r presence_sam/presence_sam/requirements.txt >> devbox.log 2>&1
