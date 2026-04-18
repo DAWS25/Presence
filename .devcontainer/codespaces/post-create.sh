@@ -59,10 +59,23 @@ if command -v iptables &> /dev/null; then
 fi
 
 # Port visibility (Codespaces only)
+log "--- Port visibility ---"
 if [ -n "${CODESPACE_NAME:-}" ]; then
-    log "--- Port visibility ---"
-    gh codespace ports visibility 10080:public 10443:public -c "$CODESPACE_NAME"
-    log "Port visibility set."
+    gh codespace ports visibility 10080:public 10443:public -c "$CODESPACE_NAME" \
+        && log "Port visibility set via CODESPACE_NAME." \
+        || log "WARN: gh codespace ports visibility failed."
+elif [ -n "${CODESPACES:-}" ]; then
+    # CODESPACE_NAME may not be set yet; detect codespace name from env
+    CS_NAME=$(gh codespace list --json name -q '.[0].name' 2>/dev/null || true)
+    if [ -n "$CS_NAME" ]; then
+        gh codespace ports visibility 10080:public 10443:public -c "$CS_NAME" \
+            && log "Port visibility set via detected name: $CS_NAME." \
+            || log "WARN: gh codespace ports visibility failed."
+    else
+        log "WARN: Could not detect codespace name for port visibility."
+    fi
+else
+    log "Not running in Codespaces, skipping port visibility."
 fi
 
 log "========== post-create.sh completed =========="
