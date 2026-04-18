@@ -9,7 +9,7 @@
     "ghcr.io/devcontainers/features/github-cli": {}
   },
 
-  "postCreateCommand": "bash ./.devcontainer/codespaces/post-create.sh",
+  "postCreateCommand": "source ./.devcontainer/codespaces/post-create.sh | tee -a /tmp/devcontainer-post-create.log",
 
   "forwardPorts": [
     10080,
