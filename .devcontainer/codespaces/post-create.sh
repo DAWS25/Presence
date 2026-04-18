@@ -100,6 +100,11 @@ else
     echo "iptables is unavailable; 443 -> 10443 redirect not configured."
 fi
 
+# Port visibility
+if [ -n "$CODESPACE_NAME" ]; then
+    gh codespace ports visibility 10080:public 10443:public -c "$CODESPACE_NAME"
+fi
+
 # System Info
 echo "PWD: $(pwd)"
 

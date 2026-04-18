@@ -1,17 +1,18 @@
 {
-  "name": "Presence DevContainer",
+  "name": "Presence DevContainer for Codespaces",
   
   "image": "mcr.microsoft.com/devcontainers/base:bookworm",
+
+  "features": {
+    "ghcr.io/devcontainers-contrib/features/direnv": {},
+    "ghcr.io/devcontainers/features/github-cli": {}
+  },
 
   "postCreateCommand": "./.devcontainer/post-create.sh",
 
   "forwardPorts": [
-    80,
-    443,
     10080,
-    10443,
-    4566,
-    8080, 3000
+    10443
   ],
 
   "portsAttributes": {
