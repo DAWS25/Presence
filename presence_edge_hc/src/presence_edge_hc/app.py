@@ -1,4 +1,5 @@
 import json
+import os
 import ssl
 import urllib.request
 import boto3
@@ -10,6 +11,18 @@ import boto3
 
 _ssm_client = None
 _api_host_cache = {}
+_config_cache = None
+
+CONFIG_PATH = os.path.join(os.path.dirname(__file__), "config.json")
+
+
+def _load_config():
+    """Load tenant/env IDs from config.json baked in at build time."""
+    global _config_cache
+    if _config_cache is None:
+        with open(CONFIG_PATH) as f:
+            _config_cache = json.load(f)
+    return _config_cache["tenant_id"], _config_cache["env_id"]
 
 
 def _get_ssm_client():
@@ -71,7 +84,8 @@ def _fetch_origin_health(host):
     else:
         # Production: call API Gateway origin directly
         try:
-            api_host = _get_api_host("Presence", "Main")
+            tenant_id, env_id = _load_config()
+            api_host = _get_api_host(tenant_id, env_id)
             targets = [api_host]
         except Exception:
             targets = [host]

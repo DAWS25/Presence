@@ -5,7 +5,7 @@ Description: Lambda@Edge healthcheck for Presence
 Parameters:
   TenantId:
     Type: String
-    Default: tenant
+    Default: presence-env
     Description: Tenant identifier used to prefix exported outputs.
 
   EnvId:

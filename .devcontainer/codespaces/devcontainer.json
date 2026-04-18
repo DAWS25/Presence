@@ -8,7 +8,7 @@
     "ghcr.io/devcontainers/features/github-cli": {}
   },
 
-  "postCreateCommand": "./.devcontainer/post-create.sh",
+  "postCreateCommand": "./.devcontainer/codespaces/post-create.sh",
 
   "forwardPorts": [
     10080,
@@ -26,6 +26,9 @@
 
   "customizations": {
     "vscode": {
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/bin/python3"
+      },
       "extensions": [
           "ms-azuretools.vscode-docker",
 
@@ -35,6 +38,7 @@
           "aws-scripting-guy.cform",
 
           "ms-python.python",
+          "ms-python.vscode-pylance",
           
           "mkhl.direnv",
 

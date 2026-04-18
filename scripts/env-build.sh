@@ -44,6 +44,11 @@ sam build
 popd
 
 echo "🔧 Building Lambda@Edge healthcheck function..."
+# Generate config.json with tenant/env IDs for SSM lookups (Lambda@Edge has no env vars)
+TENANT_ID="${TENANT_ID:-presence-env}"
+cat > "$DIR/presence_edge_hc/src/presence_edge_hc/config.json" <<EOF
+{"tenant_id": "${TENANT_ID}", "env_id": "${ENV_ID}"}
+EOF
 pushd $DIR/presence_edge_hc
 sam build
 popd

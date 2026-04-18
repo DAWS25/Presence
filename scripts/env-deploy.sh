@@ -171,7 +171,9 @@ sam deploy \
     --stack-name $ENV_ID-edge-hc \
     --region us-east-1 \
     --resolve-s3 \
-    --parameter-overrides EnvId=$ENV_ID \
+    --parameter-overrides \
+        EnvId=$ENV_ID \
+        TenantId=${TENANT_ID:-presence-env} \
     --capabilities CAPABILITY_IAM \
     --no-fail-on-empty-changeset \
     --no-confirm-changeset
