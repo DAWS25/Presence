@@ -6,7 +6,8 @@
   },
 
   "features": {
-    "ghcr.io/devcontainers/features/github-cli": {}
+    "ghcr.io/devcontainers/features/github-cli": {},
+    "ghcr.io/devcontainers/features/docker-in-docker": {}
   },
 
   "postCreateCommand": "source ./.devcontainer/codespaces/post-create.sh | tee -a /tmp/devcontainer-post-create.log",
