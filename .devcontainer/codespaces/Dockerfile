@@ -1,41 +1,13 @@
-FROM mcr.microsoft.com/devcontainers/base:bookworm
+FROM mcr.microsoft.com/devcontainers/python:3.14-bookworm
 
-ARG PYTHON_VERSION=3.14.0
-
-# System dependencies (build tools for Python, direnv, iptables)
+# System dependencies (direnv, iptables)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    libssl-dev \
-    zlib1g-dev \
-    libbz2-dev \
-    libreadline-dev \
-    libsqlite3-dev \
-    libncursesw5-dev \
-    xz-utils \
-    tk-dev \
-    libxml2-dev \
-    libxmlsec1-dev \
-    libffi-dev \
-    liblzma-dev \
     direnv \
     iptables \
     && rm -rf /var/lib/apt/lists/*
 
-# Build and install Python 3.14 from source with pip
-RUN curl -fsSL "https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz" \
-        -o /tmp/python.tgz \
-    && tar -xzf /tmp/python.tgz -C /tmp \
-    && cd "/tmp/Python-${PYTHON_VERSION}" \
-    && ./configure --with-ensurepip=install \
-    && make -j"$(nproc)" \
-    && make altinstall \
-    && ln -sf /usr/local/bin/python3.14 /usr/local/bin/python3 \
-    && ln -sf /usr/local/bin/python3.14 /usr/local/bin/python \
-    && ln -sf /usr/local/bin/pip3.14 /usr/local/bin/pip3 \
-    && ln -sf /usr/local/bin/pip3.14 /usr/local/bin/pip \
-    && python3 -m pip install --upgrade pip \
-    && python3 -m pip install livereload \
-    && rm -rf /tmp/python.tgz "/tmp/Python-${PYTHON_VERSION}"
+# Install livereload
+RUN python3 -m pip install --no-cache-dir livereload
 
 # Prepare Nix store for vscode user
 RUN mkdir -p /nix && chown -R vscode:vscode /nix
