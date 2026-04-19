@@ -6,7 +6,7 @@
 
 class PresenceHistory {
     /**
-     * Builds in-memory history (up to maxSize people) and registers faceDetected listener.
+     * Builds in-memory history (up to maxSize subjects) and registers snapshotTaken listener.
      */
     constructor(maxSize = 333) {
         this.maxSize = maxSize; // max pessoas
@@ -25,9 +25,7 @@ class PresenceHistory {
         }
 
         if (window.eventManager && !window.__presenceHistoryListenerAdded) {
-            window.eventManager.on('faceDetected', (data) => this.processDetections(data));
-            window.eventManager.on('animalDetected', (data) => this.processAnimalDetections(data));
-            window.eventManager.on('snapshotTaken', (data) => this.processSnapshot(data));
+            window.eventManager.on('snapshotTaken', (data) => this.processEvent(data));
             window.__presenceHistoryListenerAdded = true;
         } else if (!window.eventManager) {
             console.warn('EventManager não encontrado para PresenceHistory');
@@ -94,106 +92,65 @@ class PresenceHistory {
     }
 
     /**
-     * Process a detection event, assigning each bounding box to a person.
+     * Process any event — identify people by descriptor, pets by color/shape.
      */
-    processDetections(data) {
-        const { people = [], snapshot = null, timestamp = new Date().toISOString() } = data || {};
+    processEvent(data) {
+        const { people = [], pets = [], snapshot = null, timestamp = new Date().toISOString() } = data || {};
 
-        // Convert people to box format for matching and resolve person names
+        // Match people by face descriptor
         const matchedNames = people.map((person) => {
             const box = person.box || {};
             if (person.descriptor) box.descriptor = person.descriptor;
             const personKey = this.upsertPerson(box, snapshot, timestamp);
             const existing = this.people.get(personKey);
-            // If the incoming person has a known name, store it
             if (person.name && person.name !== 'unknown' && existing) {
                 existing.personName = person.name;
             }
             return existing && existing.personName ? existing.personName : null;
         });
 
-        // Use first matched name for the event card
-        const knownName = matchedNames.find((n) => n !== null) || null;
-
-        this.events.unshift({
-            timestamp,
-            snapshot,
-            event_id: data?.event_id || null,
-            faceCount: typeof data?.faceCount === 'number' ? data.faceCount : people.length,
-            personName: knownName,
-            detectedPeople: people.map((p, i) => ({
-                name: matchedNames[i] || p.name || 'unknown',
-                type: 'person',
-            })),
-            detectedPets: [],
-        });
-        this.render();
-
-        // If any person was recognized, update the server so the event stores the resolved name
-        if (knownName && data?.event_id) {
-            this._saveEventToServer(this.events[0]);
-        }
-    }
-
-    /**
-     * Process an animal detection event, matching pets by IoU + species.
-     */
-    processAnimalDetections(data) {
-        const { pets = [], snapshot = null, timestamp = new Date().toISOString() } = data || {};
-
-        const matchedNames = pets.map((pet) => {
+        // Match pets by color + shape
+        const matchedPetNames = pets.map((pet) => {
             const box = pet.bbox
                 ? { x: pet.bbox[0], y: pet.bbox[1], width: pet.bbox[2], height: pet.bbox[3] }
                 : {};
             box.species = pet.species || pet.name || 'pet';
             box.color = pet.color || null;
             box.aspectRatio = pet.aspectRatio || null;
-            const personKey = this.upsertPet(box, snapshot, timestamp);
-            const existing = this.people.get(personKey);
+            const petKey = this.upsertPet(box, snapshot, timestamp);
+            const existing = this.people.get(petKey);
             if (pet.name && pet.name !== box.species && existing) {
                 existing.personName = pet.name;
             }
             return existing && existing.personName ? existing.personName : box.species;
         });
 
-        const names = matchedNames.join(', ');
+        const knownName = matchedNames.find((n) => n !== null) || null;
 
         this.events.unshift({
             timestamp,
             snapshot,
             event_id: data?.event_id || null,
-            faceCount: 0,
+            faceCount: people.length,
             animalCount: pets.length,
-            animalNames: names,
-            isAnimal: true,
-            personName: null,
-            detectedPeople: [],
+            personName: knownName,
+            animalNames: matchedPetNames.length > 0 ? matchedPetNames.join(', ') : null,
+            detectedPeople: people.map((p, i) => ({
+                name: matchedNames[i] || p.name || 'unknown',
+                type: 'person',
+            })),
             detectedPets: pets.map((p, i) => ({
-                name: matchedNames[i] || p.species || p.name || 'pet',
+                name: matchedPetNames[i] || p.species || p.name || 'pet',
                 species: p.species || p.name || 'pet',
                 type: 'pet',
             })),
         });
         this.render();
-    }
 
-    /**
-     * Process a snapshot event (no detections).
-     */
-    processSnapshot(data) {
-        const { snapshot = null, timestamp = new Date().toISOString() } = data || {};
-        this.events.unshift({
-            timestamp,
-            snapshot,
-            event_id: data?.event_id || null,
-            faceCount: 0,
-            animalCount: 0,
-            isSnapshot: true,
-            personName: null,
-            detectedPeople: [],
-            detectedPets: [],
-        });
-        this.render();
+        // If any person was recognized, update the server
+        if (knownName && data?.event_id) {
+            this._saveEventToServer(this.events[0]);
+        }
     }
 
     /**
@@ -478,29 +435,11 @@ class PresenceHistory {
                 ? `<img src="${eventItem.snapshot}" alt="Face" />`
                 : '<div class="events-empty">Sem imagem</div>';
 
-            const detectionTitle = window.i18n ? window.i18n.t('events.detection.title') : 'Deteccao';
-            const animalTitle = window.i18n ? window.i18n.t('events.detection.animal') : 'Pet Detected';
-            const personName = eventItem.personName || (window.i18n ? window.i18n.t('events.detection.unknown') : 'Unknown presence');
             const eventIndex = this.events.indexOf(eventItem);
+            const hasPeople = (eventItem.faceCount || 0) > 0;
+            const hasPets = (eventItem.animalCount || 0) > 0;
 
-            if (eventItem.isAnimal) {
-                return `
-                    <div class="event-card event-card-clickable" data-event-index="${eventIndex}">
-                        ${imgHtml}
-                        <div class="event-info">
-                            <div class="event-header">
-                                <div class="event-title">\ud83d\udc3e ${animalTitle}</div>
-                                <div class="event-time">${timeStr}</div>
-                            </div>
-                            <div class="event-person">${eventItem.animalNames}</div>
-                            <div class="event-meta">Pets: ${eventItem.animalCount}</div>
-                        </div>
-                        <span class="event-card-expand">\ud83d\udc46</span>
-                    </div>
-                `;
-            }
-
-            if (eventItem.isSnapshot) {
+            if (!hasPeople && !hasPets) {
                 return `
                     <div class="event-card" data-event-index="${eventIndex}">
                         ${imgHtml}
@@ -515,16 +454,27 @@ class PresenceHistory {
                 `;
             }
 
+            const titleIcon = hasPeople ? '👤' : '🐾';
+            const titleText = hasPeople
+                ? (window.i18n ? window.i18n.t('events.detection.title') : 'Deteccao')
+                : (window.i18n ? window.i18n.t('events.detection.animal') : 'Pet Detected');
+            const subjectName = hasPeople
+                ? (eventItem.personName || (window.i18n ? window.i18n.t('events.detection.unknown') : 'Unknown presence'))
+                : (eventItem.animalNames || '');
+            const meta = [];
+            if (hasPeople) meta.push(`Faces: ${eventItem.faceCount}`);
+            if (hasPets) meta.push(`Pets: ${eventItem.animalCount}`);
+
             return `
                 <div class="event-card event-card-clickable" data-event-index="${eventIndex}">
                     ${imgHtml}
                     <div class="event-info">
                         <div class="event-header">
-                            <div class="event-title">${detectionTitle}</div>
+                            <div class="event-title">${titleIcon} ${titleText}</div>
                             <div class="event-time">${timeStr}</div>
                         </div>
-                        <div class="event-person">${personName}</div>
-                        <div class="event-meta">Faces: ${eventItem.faceCount}</div>
+                        <div class="event-person">${subjectName}</div>
+                        <div class="event-meta">${meta.join(' | ')}</div>
                     </div>
                     <span class="event-card-expand">👆</span>
                 </div>
@@ -739,7 +689,7 @@ class PresenceHistory {
                 // Update card display name
                 const knownPerson = eventItem.detectedPeople.find(p => p.name && p.name !== 'unknown');
                 eventItem.personName = knownPerson ? knownPerson.name : null;
-                if (eventItem.isAnimal) {
+                if (eventItem.detectedPets && eventItem.detectedPets.length > 0) {
                     eventItem.animalNames = eventItem.detectedPets.map(p => p.name).join(', ');
                 }
 

@@ -139,14 +139,18 @@
             const snapshot = payload.snapshot || null;
 
             // Image on top
+            const faceCount = payload.faceCount || 0;
+            const animalCount = payload.animalCount || 0;
+            const typeIcon = faceCount > 0 ? '👤' : animalCount > 0 ? '🐾' : '📸';
             const imgHtml = snapshot
                 ? `<img src="${snapshot}" alt="snapshot" />`
-                : `<div class="card-no-img">${type === 'faceDetected' ? '👤' : type === 'animalDetected' ? '🐾' : '📸'}</div>`;
+                : `<div class="card-no-img">${typeIcon}</div>`;
 
             // Build fields from the event (excluding snapshot/image)
             const fields = [];
-            fields.push(cardField('type', type));
             fields.push(cardField('time', formatTime(ev.created_at)));
+            fields.push(cardField('date', formatDate(ev.created_at)));
+            fields.push(cardField('type', type));
 
             // People
             const people = ev.people || [];
@@ -163,7 +167,7 @@
             }
 
             // Payload fields (skip snapshot & redundant keys)
-            const skipKeys = new Set(['snapshot', 'event_type', 'faceCount', 'animalCount', 'people', 'pets']);
+            const skipKeys = new Set(['snapshot', 'event_type', 'faceCount', 'animalCount', 'people', 'pets', 'timestamp']);
             if (payload.faceCount != null) fields.push(cardField('faces', String(payload.faceCount)));
             if (payload.animalCount != null) fields.push(cardField('animals', String(payload.animalCount)));
             for (const [k, v] of Object.entries(payload)) {
@@ -189,6 +193,15 @@
         try {
             const d = new Date(iso);
             return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        } catch {
+            return iso;
+        }
+    }
+
+    function formatDate(iso) {
+        try {
+            const d = new Date(iso);
+            return d.toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' });
         } catch {
             return iso;
         }

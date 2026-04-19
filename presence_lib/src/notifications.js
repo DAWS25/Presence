@@ -14,39 +14,9 @@ class NotificationManager {
         
         // Register listener for detection events
         if (window.eventManager && !window.__notificationFaceListenerAdded) {
-            window.eventManager.on('faceDetected', (data) => this.showFaceDetectedMessage(data));
-            window.eventManager.on('animalDetected', (data) => this.showAnimalDetectedMessage(data));
             window.eventManager.on('snapshotTaken', (data) => this.showSnapshotMessage(data));
             window.__notificationFaceListenerAdded = true;
         }
-    }
-
-    /**
-     * Show face-detected message
-     */
-    showFaceDetectedMessage(data) {
-        const { faceCount, timestamp } = data;
-        this.faceDetectionCount++;
-        
-        const message = faceCount > 1 
-            ? `👥 ${faceCount} faces detectadas!`
-            : `👤 Face detectada!`;
-        
-        this.showMessage(message, 'success');
-        console.log(`📊 Total de detecções: ${this.faceDetectionCount}`);
-    }
-
-    /**
-     * Show animal-detected message
-     */
-    showAnimalDetectedMessage(data) {
-        const pets = data.pets || [];
-        const names = pets.map(p => p.name).join(', ');
-        const message = pets.length > 1
-            ? `🐾 ${pets.length} pets detectados! (${names})`
-            : `🐾 Pet detectado! (${names})`;
-        this.showMessage(message, 'success');
-        console.log(`🐾 Animal detection event: ${names}`);
     }
 
     /**
@@ -85,7 +55,23 @@ class NotificationManager {
      * Show snapshot message
      */
     showSnapshotMessage(data) {
-        this.showMessage('📸 Snapshot enviado', 'info', 2000);
+        const faceCount = data?.faceCount || 0;
+        const pets = data?.pets || [];
+        if (faceCount > 0) {
+            this.faceDetectionCount++;
+            const message = faceCount > 1
+                ? `👥 ${faceCount} faces detectadas!`
+                : `👤 Face detectada!`;
+            this.showMessage(message, 'success');
+        } else if (pets.length > 0) {
+            const names = pets.map(p => p.name).join(', ');
+            const message = pets.length > 1
+                ? `🐾 ${pets.length} pets detectados! (${names})`
+                : `🐾 Pet detectado! (${names})`;
+            this.showMessage(message, 'success');
+        } else {
+            this.showMessage('📸 Snapshot enviado', 'info', 2000);
+        }
     }
 
     /**

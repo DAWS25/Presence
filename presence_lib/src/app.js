@@ -182,75 +182,63 @@ class PresenceApp {
                 const faceCount = detections.length;
                 const animalCount = window.animalDetector ? window.animalDetector.lastAnimals.length : 0;
 
-                if (faceCount > 0) {
-                    const people = detections.map(det => {
-                        const descriptor = det.descriptor ? Array.from(det.descriptor) : null;
-                        let name = 'unknown';
-                        let subjectId = crypto.randomUUID();
-                        // Resolve name and stable subject_id from in-memory recognition history
-                        if (descriptor && window.presenceHistory) {
-                            const key = window.presenceHistory.findMatchByDescriptor({ descriptor });
-                            if (key !== null) {
-                                const person = window.presenceHistory.people.get(key);
-                                if (person) {
-                                    subjectId = person.subjectId;
-                                    if (person.personName) {
-                                        name = person.personName;
-                                    }
+                // Build people array from face detections
+                const people = faceCount > 0 ? detections.map(det => {
+                    const descriptor = det.descriptor ? Array.from(det.descriptor) : null;
+                    let name = 'unknown';
+                    let subjectId = null;
+                    // Resolve name and stable subject_id from in-memory recognition history
+                    if (descriptor && window.presenceHistory) {
+                        const key = window.presenceHistory.findMatchByDescriptor({ descriptor });
+                        if (key !== null) {
+                            const person = window.presenceHistory.people.get(key);
+                            if (person) {
+                                subjectId = person.subjectId;
+                                if (person.personName) {
+                                    name = person.personName;
                                 }
                             }
                         }
+                    }
+                    return {
+                        subject_id: subjectId,
+                        name,
+                        score: det.detection.score || null,
+                        box: det.detection.box ? {
+                            x: det.detection.box.x,
+                            y: det.detection.box.y,
+                            width: det.detection.box.width,
+                            height: det.detection.box.height
+                        } : null,
+                        descriptor
+                    };
+                }) : [];
+
+                // Build pets array from animal detections
+                const pets = (animalCount > 0 && window.animalDetector)
+                    ? window.animalDetector.lastAnimals.map(a => {
+                        const [x, y, w, h] = a.bbox;
+                        const color = window.animalDetector.extractAvgColor(x, y, w, h);
                         return {
-                            subject_id: subjectId,
-                            name,
-                            score: det.detection.score || null,
-                            box: det.detection.box ? {
-                                x: det.detection.box.x,
-                                y: det.detection.box.y,
-                                width: det.detection.box.width,
-                                height: det.detection.box.height
-                            } : null,
-                            descriptor
+                            subject_id: crypto.randomUUID(),
+                            name: a.class,
+                            species: a.class,
+                            score: a.score,
+                            bbox: a.bbox,
+                            aspectRatio: h > 0 ? w / h : 1,
+                            color
                         };
-                    });
-                    window.eventManager.emit('faceDetected', {
-                        faceCount,
-                        people,
-                        pets: [],
-                        timestamp,
-                        snapshot
-                    });
-                } else if (animalCount > 0 && window.animalDetector) {
-                    const animals = window.animalDetector.lastAnimals;
-                    window.eventManager.emit('animalDetected', {
-                        animalCount,
-                        people: [],
-                        pets: animals.map(a => {
-                            const [x, y, w, h] = a.bbox;
-                            const color = window.animalDetector.extractAvgColor(x, y, w, h);
-                            return {
-                                subject_id: crypto.randomUUID(),
-                                name: a.class,
-                                species: a.class,
-                                score: a.score,
-                                bbox: a.bbox,
-                                aspectRatio: h > 0 ? w / h : 1,
-                                color
-                            };
-                        }),
-                        timestamp,
-                        snapshot
-                    });
-                } else {
-                    window.eventManager.emit('snapshotTaken', {
-                        faceCount: 0,
-                        animalCount: 0,
-                        people: [],
-                        pets: [],
-                        timestamp,
-                        snapshot
-                    });
-                }
+                    }) : [];
+
+                // Emit a single unified snapshot event with all detected subjects
+                window.eventManager.emit('snapshotTaken', {
+                    faceCount,
+                    animalCount,
+                    people,
+                    pets,
+                    timestamp,
+                    snapshot
+                });
             }
             
         } catch (error) {
