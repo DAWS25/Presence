@@ -186,18 +186,22 @@ class PresenceApp {
                     const people = detections.map(det => {
                         const descriptor = det.descriptor ? Array.from(det.descriptor) : null;
                         let name = 'unknown';
-                        // Resolve name from in-memory recognition history
+                        let subjectId = crypto.randomUUID();
+                        // Resolve name and stable subject_id from in-memory recognition history
                         if (descriptor && window.presenceHistory) {
                             const key = window.presenceHistory.findMatchByDescriptor({ descriptor });
                             if (key !== null) {
                                 const person = window.presenceHistory.people.get(key);
-                                if (person && person.personName) {
-                                    name = person.personName;
+                                if (person) {
+                                    subjectId = person.subjectId;
+                                    if (person.personName) {
+                                        name = person.personName;
+                                    }
                                 }
                             }
                         }
                         return {
-                            id: crypto.randomUUID(),
+                            subject_id: subjectId,
                             name,
                             score: det.detection.score || null,
                             box: det.detection.box ? {
@@ -225,7 +229,7 @@ class PresenceApp {
                             const [x, y, w, h] = a.bbox;
                             const color = window.animalDetector.extractAvgColor(x, y, w, h);
                             return {
-                                id: crypto.randomUUID(),
+                                subject_id: crypto.randomUUID(),
                                 name: a.class,
                                 species: a.class,
                                 score: a.score,

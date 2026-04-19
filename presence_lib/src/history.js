@@ -63,7 +63,7 @@ class PresenceHistory {
                     for (const person of ev.people) {
                         const box = person.box || {};
                         if (person.descriptor) box.descriptor = person.descriptor;
-                        const key = this.upsertPerson(box, null, timestamp);
+                        const key = this.upsertPerson(box, null, timestamp, person.subject_id || null);
                         const existing = this.people.get(key);
                         if (person.name && person.name !== 'unknown' && existing) {
                             existing.personName = person.name;
@@ -87,7 +87,7 @@ class PresenceHistory {
                 }
             }
 
-            console.log(`[history] Loaded ${events.length} events → ${peopleLoaded} people, ${petsLoaded} pets → ${this.people.size} individuals in memory`);
+            console.log(`[history] Loaded ${events.length} events → ${peopleLoaded} people, ${petsLoaded} pets → ${this.people.size} subjects in memory`);
         } catch (err) {
             console.warn('[history] Failed to load history:', err);
         }
@@ -277,7 +277,7 @@ class PresenceHistory {
      * Update matched person or create a new one; maintains FIFO of people.
      * Returns the matched/created person key.
      */
-    upsertPerson(box, snapshot, timestamp) {
+    upsertPerson(box, snapshot, timestamp, subjectId) {
         // Prefer descriptor matching over IoU
         let matchKey = this.findMatchByDescriptor(box);
         if (matchKey === null) {
@@ -294,6 +294,10 @@ class PresenceHistory {
             if (box.descriptor) {
                 person.descriptor = box.descriptor;
             }
+            // Preserve a known subjectId if not yet set
+            if (subjectId && !person.subjectId) {
+                person.subjectId = subjectId;
+            }
             this.people.set(matchKey, person);
             return matchKey;
         }
@@ -301,6 +305,7 @@ class PresenceHistory {
         const id = ++this.seq;
         const person = {
             id,
+            subjectId: subjectId || crypto.randomUUID(),
             count: 1,
             firstTimestamp: timestamp,
             lastTimestamp: timestamp,
@@ -583,7 +588,7 @@ class PresenceHistory {
     }
 
     /**
-     * Render detail view for a selected event with editable individual rows.
+     * Render detail view for a selected event with editable subject rows.
      */
     renderEventDetail(index) {
         const detailContent = this.detailContent || document.getElementById('detailContent');
@@ -605,19 +610,19 @@ class PresenceHistory {
             : '';
 
         const peopleRows = (eventItem.detectedPeople || []).map((p, i) => `
-            <div class="event-detail-row individual-row" data-type="person" data-index="${i}">
+            <div class="event-detail-row subject-row" data-type="person" data-index="${i}">
                 <span class="event-detail-label">👤</span>
-                <input class="event-detail-input individual-name" type="text" value="${this._escapeAttr(p.name)}" placeholder="Name" />
-                <button class="individual-remove" title="Remove">✕</button>
+                <input class="event-detail-input subject-name" type="text" value="${this._escapeAttr(p.name)}" placeholder="Name" />
+                <button class="subject-remove" title="Remove">✕</button>
             </div>
         `).join('');
 
         const petRows = (eventItem.detectedPets || []).map((p, i) => `
-            <div class="event-detail-row individual-row" data-type="pet" data-index="${i}">
+            <div class="event-detail-row subject-row" data-type="pet" data-index="${i}">
                 <span class="event-detail-label">🐾</span>
-                <input class="event-detail-input individual-name" type="text" value="${this._escapeAttr(p.name)}" placeholder="Name" />
-                <span class="individual-species">${this._escapeAttr(p.species || '')}</span>
-                <button class="individual-remove" title="Remove">✕</button>
+                <input class="event-detail-input subject-name" type="text" value="${this._escapeAttr(p.name)}" placeholder="Name" />
+                <span class="subject-species">${this._escapeAttr(p.species || '')}</span>
+                <button class="subject-remove" title="Remove">✕</button>
             </div>
         `).join('');
 
@@ -631,14 +636,14 @@ class PresenceHistory {
                     <div class="event-detail-section">
                         <div class="event-detail-section-header">
                             <span>People</span>
-                            <button class="individual-add" id="addPerson">+ Add</button>
+                            <button class="subject-add" id="addPerson">+ Add</button>
                         </div>
                         <div id="peopleList">${peopleRows || '<div class="text-muted">None detected</div>'}</div>
                     </div>
                     <div class="event-detail-section">
                         <div class="event-detail-section-header">
                             <span>Pets</span>
-                            <button class="individual-add" id="addPet">+ Add</button>
+                            <button class="subject-add" id="addPet">+ Add</button>
                         </div>
                         <div id="petsList">${petRows || '<div class="text-muted">None detected</div>'}</div>
                     </div>
@@ -694,9 +699,9 @@ class PresenceHistory {
         }
 
         // Remove buttons
-        container.querySelectorAll('.individual-remove').forEach(btn => {
+        container.querySelectorAll('.subject-remove').forEach(btn => {
             btn.addEventListener('click', () => {
-                const row = btn.closest('.individual-row');
+                const row = btn.closest('.subject-row');
                 const type = row.dataset.type;
                 const idx = parseInt(row.dataset.index, 10);
                 if (type === 'person') {
@@ -713,17 +718,17 @@ class PresenceHistory {
         if (saveBtn) {
             saveBtn.addEventListener('click', () => {
                 // Read all people names from inputs
-                const peopleInputs = container.querySelectorAll('#peopleList .individual-name');
+                const peopleInputs = container.querySelectorAll('#peopleList .subject-name');
                 eventItem.detectedPeople = Array.from(peopleInputs).map(input => ({
                     name: input.value.trim() || 'unknown',
                     type: 'person',
                 }));
 
                 // Read all pet names from inputs
-                const petInputs = container.querySelectorAll('#petsList .individual-row');
+                const petInputs = container.querySelectorAll('#petsList .subject-row');
                 eventItem.detectedPets = Array.from(petInputs).map(row => {
-                    const nameInput = row.querySelector('.individual-name');
-                    const speciesEl = row.querySelector('.individual-species');
+                    const nameInput = row.querySelector('.subject-name');
+                    const speciesEl = row.querySelector('.subject-species');
                     return {
                         name: nameInput ? nameInput.value.trim() || 'pet' : 'pet',
                         species: speciesEl ? speciesEl.textContent.trim() || 'pet' : 'pet',

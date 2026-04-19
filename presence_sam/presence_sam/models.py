@@ -18,18 +18,18 @@ class Event(SQLModel, table=True):
     created_at: datetime = Field(sa_column=Column(DateTime(timezone=True), server_default=func.now()))
 
 
-class Individual(SQLModel, table=True):
-    __tablename__ = "individuals"
-    __table_args__ = (UniqueConstraint("name", "individual_type"),)
+class Subject(SQLModel, table=True):
+    __tablename__ = "subjects"
+    __table_args__ = (UniqueConstraint("name", "subject_type"),)
 
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(index=True)
-    individual_type: str = Field(index=True)  # "person" or "pet"
+    subject_type: str = Field(index=True)  # "person" or "pet"
 
 
-class EventIndividual(SQLModel, table=True):
-    __tablename__ = "event_individuals"
+class EventSubject(SQLModel, table=True):
+    __tablename__ = "event_subjects"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     event_id: int = Field(sa_column=Column(ForeignKey("events.id"), nullable=False, index=True))
-    individual_id: int = Field(sa_column=Column(ForeignKey("individuals.id"), nullable=False, index=True))
+    subject_id: int = Field(sa_column=Column(ForeignKey("subjects.id"), nullable=False, index=True))

@@ -24,42 +24,42 @@ async def events_put(place_id: str, request: Request, session: Session = Depends
     )
     event_id = result.first()[0]
 
-    # Upsert people into individuals and link to event
+    # Upsert people into subjects and link to event
     for person in people:
         name = person.get('name') or 'unknown'
         row = session.exec(
-            text("INSERT INTO individuals (name, individual_type) VALUES (:name, 'person') ON CONFLICT DO NOTHING RETURNING id"),
+            text("INSERT INTO subjects (name, subject_type) VALUES (:name, 'person') ON CONFLICT DO NOTHING RETURNING id"),
             params={"name": name},
         ).first()
         if row:
-            individual_id = row[0]
+            subject_id = row[0]
         else:
-            individual_id = session.exec(
-                text("SELECT id FROM individuals WHERE name = :name AND individual_type = 'person'"),
+            subject_id = session.exec(
+                text("SELECT id FROM subjects WHERE name = :name AND subject_type = 'person'"),
                 params={"name": name},
             ).first()[0]
         session.exec(
-            text("INSERT INTO event_individuals (event_id, individual_id) VALUES (:event_id, :individual_id)"),
-            params={"event_id": event_id, "individual_id": individual_id},
+            text("INSERT INTO event_subjects (event_id, subject_id) VALUES (:event_id, :subject_id)"),
+            params={"event_id": event_id, "subject_id": subject_id},
         )
 
-    # Upsert pets into individuals and link to event
+    # Upsert pets into subjects and link to event
     for pet in pets:
         name = pet.get('species') or pet.get('name') or 'pet'
         row = session.exec(
-            text("INSERT INTO individuals (name, individual_type) VALUES (:name, 'pet') ON CONFLICT DO NOTHING RETURNING id"),
+            text("INSERT INTO subjects (name, subject_type) VALUES (:name, 'pet') ON CONFLICT DO NOTHING RETURNING id"),
             params={"name": name},
         ).first()
         if row:
-            individual_id = row[0]
+            subject_id = row[0]
         else:
-            individual_id = session.exec(
-                text("SELECT id FROM individuals WHERE name = :name AND individual_type = 'pet'"),
+            subject_id = session.exec(
+                text("SELECT id FROM subjects WHERE name = :name AND subject_type = 'pet'"),
                 params={"name": name},
             ).first()[0]
         session.exec(
-            text("INSERT INTO event_individuals (event_id, individual_id) VALUES (:event_id, :individual_id)"),
-            params={"event_id": event_id, "individual_id": individual_id},
+            text("INSERT INTO event_subjects (event_id, subject_id) VALUES (:event_id, :subject_id)"),
+            params={"event_id": event_id, "subject_id": subject_id},
         )
 
     session.commit()
@@ -97,40 +97,40 @@ async def events_update(place_id: str, request: Request, session: Session = Depe
         params={"event_id": event_id, "people": json.dumps(people), "pets": json.dumps(pets)},
     )
 
-    # Remove old individual links and re-create
+    # Remove old subject links and re-create
     session.exec(
-        text("DELETE FROM event_individuals WHERE event_id = :event_id"),
+        text("DELETE FROM event_subjects WHERE event_id = :event_id"),
         params={"event_id": event_id},
     )
 
     for person in people:
         name = person.get('name') or 'unknown'
         r = session.exec(
-            text("INSERT INTO individuals (name, individual_type) VALUES (:name, 'person') ON CONFLICT DO NOTHING RETURNING id"),
+            text("INSERT INTO subjects (name, subject_type) VALUES (:name, 'person') ON CONFLICT DO NOTHING RETURNING id"),
             params={"name": name},
         ).first()
-        individual_id = r[0] if r else session.exec(
-            text("SELECT id FROM individuals WHERE name = :name AND individual_type = 'person'"),
+        subject_id = r[0] if r else session.exec(
+            text("SELECT id FROM subjects WHERE name = :name AND subject_type = 'person'"),
             params={"name": name},
         ).first()[0]
         session.exec(
-            text("INSERT INTO event_individuals (event_id, individual_id) VALUES (:event_id, :individual_id)"),
-            params={"event_id": event_id, "individual_id": individual_id},
+            text("INSERT INTO event_subjects (event_id, subject_id) VALUES (:event_id, :subject_id)"),
+            params={"event_id": event_id, "subject_id": subject_id},
         )
 
     for pet in pets:
         name = pet.get('species') or pet.get('name') or 'pet'
         r = session.exec(
-            text("INSERT INTO individuals (name, individual_type) VALUES (:name, 'pet') ON CONFLICT DO NOTHING RETURNING id"),
+            text("INSERT INTO subjects (name, subject_type) VALUES (:name, 'pet') ON CONFLICT DO NOTHING RETURNING id"),
             params={"name": name},
         ).first()
-        individual_id = r[0] if r else session.exec(
-            text("SELECT id FROM individuals WHERE name = :name AND individual_type = 'pet'"),
+        subject_id = r[0] if r else session.exec(
+            text("SELECT id FROM subjects WHERE name = :name AND subject_type = 'pet'"),
             params={"name": name},
         ).first()[0]
         session.exec(
-            text("INSERT INTO event_individuals (event_id, individual_id) VALUES (:event_id, :individual_id)"),
-            params={"event_id": event_id, "individual_id": individual_id},
+            text("INSERT INTO event_subjects (event_id, subject_id) VALUES (:event_id, :subject_id)"),
+            params={"event_id": event_id, "subject_id": subject_id},
         )
 
     session.commit()

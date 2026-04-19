@@ -594,20 +594,20 @@ html, body {
     font-weight: 600;
 }
 
-.individual-row {
+.subject-row {
     display: flex;
     align-items: center;
     gap: 0.35rem;
     margin-bottom: 0.25rem;
 }
 
-.individual-species {
+.subject-species {
     color: var(--gray);
     font-size: 0.7rem;
     white-space: nowrap;
 }
 
-.individual-remove {
+.subject-remove {
     background: none;
     border: none;
     color: var(--red, #ea6962);
@@ -619,11 +619,11 @@ html, body {
     transition: opacity 0.15s;
 }
 
-.individual-remove:hover {
+.subject-remove:hover {
     opacity: 1;
 }
 
-.individual-add {
+.subject-add {
     background: none;
     border: 1px solid var(--bg3);
     color: var(--aqua);
@@ -634,7 +634,7 @@ html, body {
     transition: border-color 0.15s;
 }
 
-.individual-add:hover {
+.subject-add:hover {
     border-color: var(--aqua);
 }
 
