@@ -89,7 +89,8 @@
 
         const minutes = getMinutes();
         if (total > 0 && minutes > 0) {
-            metricPerMin.textContent = (total / minutes).toFixed(1);
+            const avg = total / minutes;
+            metricPerMin.textContent = avg >= 1 ? avg.toFixed(1) : avg.toFixed(2);
         } else {
             metricPerMin.textContent = '0';
         }
