@@ -16,6 +16,11 @@ function initApp() {
         plidEl.textContent = place;
         plidEl.href = hubUrl;
         plidEl.target = '_blank';
+
+        const hubBtn = document.getElementById('hubBtn');
+        if (hubBtn) {
+            hubBtn.href = hubUrl;
+        }
     }
 
     const qrEl = document.getElementById('shareQr');

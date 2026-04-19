@@ -1330,6 +1330,11 @@ html, body {
     border-color: var(--blue);
 }
 
+.hud-hub-btn {
+    right: 3.5rem;
+    text-decoration: none;
+}
+
 /* Settings Controls */
 .settings-row {
     display: flex;
