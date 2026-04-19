@@ -15,6 +15,7 @@
     const metricPresences = document.getElementById('metricPresences');
     const timeWindowSlider = document.getElementById('timeWindow');
     const timeWindowLabel = document.getElementById('timeWindowLabel');
+    const refreshStatusEl = document.getElementById('refreshStatus');
 
     if (!placeId) {
         placeIdEl.textContent = '(no place)';
@@ -79,9 +80,19 @@
         }
     }
 
+    let lastRefreshTs = 0;
+
     function fetchAll() {
         fetchPresence();
         fetchEvents();
+        lastRefreshTs = Date.now();
+    }
+
+    function updateRefreshStatus() {
+        if (!refreshStatusEl) return;
+        const elapsed = Math.floor((Date.now() - lastRefreshTs) / 1000);
+        const remaining = Math.max(0, Math.floor((POLL_INTERVAL - (Date.now() - lastRefreshTs)) / 1000));
+        refreshStatusEl.textContent = `Last refresh: ${elapsed}s ago · Next in ${remaining}s`;
     }
 
     function renderMetrics(events, total) {
@@ -217,4 +228,5 @@
     timeWindowLabel.textContent = formatMinutes(getMinutes());
     fetchAll();
     setInterval(fetchAll, POLL_INTERVAL);
+    setInterval(updateRefreshStatus, 1000);
 })();

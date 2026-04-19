@@ -1,6 +1,7 @@
 from fastapi import Path, Depends, Request
 from fastapi.responses import JSONResponse
 from sqlmodel import Session, text
+from datetime import datetime, timezone, timedelta
 import logging
 import json
 
@@ -142,9 +143,10 @@ def events_get(place_id: str, minutes: int = None, session: Session = Depends(ge
     if minutes == 0:
         return JSONResponse(content={"place_id": place_id, "events": [], "total": 0})
     if minutes:
+        since = datetime.now(timezone.utc) - timedelta(minutes=minutes)
         results = session.exec(
-            text("SELECT event_type, people, pets, payload, created_at FROM events WHERE place_id = :place_id AND created_at >= NOW() - make_interval(mins => :minutes) ORDER BY created_at DESC"),
-            params={"place_id": place_id, "minutes": minutes},
+            text("SELECT event_type, people, pets, payload, created_at FROM events WHERE place_id = :place_id AND created_at >= :since ORDER BY created_at DESC"),
+            params={"place_id": place_id, "since": since},
         ).all()
     else:
         results = session.exec(

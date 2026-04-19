@@ -100,6 +100,11 @@
             accent-color: var(--yellow);
             cursor: pointer;
         }
+        .refresh-status {
+            font-size: 0.8rem;
+            color: var(--gray);
+            margin-top: 0.2rem;
+        }
         .event-stream {
             display: flex;
             flex-wrap: wrap;
@@ -208,12 +213,14 @@
             <a class="hub-place-id" id="placeId" target="_blank" rel="noopener"></a>
         </div>
 
+        <div class="time-slider">
+            <label for="timeWindow">Time window: <span id="timeWindowLabel">1440 minutes — 1 day</span></label>
+            <input type="range" id="timeWindow" min="0" max="10080" value="1440" step="1">
+            <div class="refresh-status" id="refreshStatus"></div>
+        </div>
+
         <div class="hub-section">
             <h2>Presence</h2>
-            <div class="time-slider">
-                <label for="timeWindow">Time window: <span id="timeWindowLabel">1440 minutes — 1 day</span></label>
-                <input type="range" id="timeWindow" min="0" max="10080" value="1440" step="1">
-            </div>
             <table class="presence-table">
                 <thead>
                     <tr>
