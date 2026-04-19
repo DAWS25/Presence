@@ -21,6 +21,8 @@ class AnimalDetector {
         this.canvasEl = document.getElementById('canvas');
         this.animalCountEl = document.getElementById('animalCount');
         this.lastAnimals = [];
+        this.minScore = 0.333;   // lower threshold helps dark-colored animals
+        this.maxDetections = 5;
     }
 
     async load() {
@@ -31,7 +33,7 @@ class AnimalDetector {
         console.log('🐾 Loading COCO-SSD model...');
         this.model = await cocoSsd.load();
         this.isReady = true;
-        console.log('✅ COCO-SSD model loaded');
+        console.log(`✅ COCO-SSD model loaded — minScore=${this.minScore}, maxDetections=${this.maxDetections}, interval=${this.detectionIntervalMs}ms`);
 
         if (window.presenceHistory && window.i18n) {
             window.presenceHistory.addWelcomeMessage(
@@ -49,7 +51,7 @@ class AnimalDetector {
         if (now - this.lastDetectTs < this.detectionIntervalMs) return this.lastAnimals;
         this.lastDetectTs = now;
 
-        const predictions = await this.model.detect(this.videoEl);
+        const predictions = await this.model.detect(this.videoEl, this.maxDetections, this.minScore);
         const animals = predictions.filter(p => ANIMAL_CLASSES.includes(p.class));
         this.lastAnimals = animals;
 

@@ -98,6 +98,15 @@
                 <div class="detail-content settings-content">
                     <div class="settings-panel">
                         <div class="settings-row">
+                            <label class="settings-label" for="cameraSelect">Camera</label>
+                            <div class="settings-control">
+                                <select id="cameraSelect" class="settings-select">
+                                    <option value="environment">Back (environment)</option>
+                                    <option value="user">Front (user)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="settings-row">
                             <label class="settings-label" for="cooldownSlider">Cooldown Period</label>
                             <div class="settings-control">
                                 <input type="range" id="cooldownSlider" min="5" max="300" value="15" step="1" class="settings-range">

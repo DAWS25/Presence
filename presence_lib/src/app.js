@@ -20,9 +20,39 @@ class PresenceApp {
         this.lastSnapshotTs = 0;
         this.snapshotIntervalMs = 15000;
         this.detectionIntervalMs = 300; // throttle detection loop
+
+        // Motion detection state
+        this.motionCanvas = document.createElement('canvas');
+        this.motionWidth = 160;
+        this.motionHeight = 120;
+        this.motionCanvas.width = this.motionWidth;
+        this.motionCanvas.height = this.motionHeight;
+        this.prevGray = null;
+        this.motionThreshold = 45;    // per-pixel diff threshold
+        this.motionMinPixels = 0.06;  // fraction of pixels that must change
+        this.motionCheckMs = 500;     // check motion every 500ms
+        this.lastMotionCheckTs = 0;
+
+        // Burst mode state — activated on motion
+        this.burstMode = false;
+        this.burstStartTs = 0;
+        this.burstDurationMs = 30000;   // 30 seconds of burst
+        this.burstIntervalMs = 3000;    // snapshot every 3s during burst
+        this.lastBurstSnapshotTs = 0;
         
         this.isRunning = false;
         this.stream = null;
+        this.facingMode = 'environment'; // prefer back camera on mobile
+
+        // Camera selector in settings
+        this.cameraSelect = document.getElementById('cameraSelect');
+        if (this.cameraSelect) {
+            this.cameraSelect.value = this.facingMode;
+            this.cameraSelect.addEventListener('change', () => {
+                this.facingMode = this.cameraSelect.value;
+                this.restartCamera();
+            });
+        }
         
         this.init();
     }
@@ -69,6 +99,8 @@ class PresenceApp {
                 faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
             ]);
             console.log('✅ Modelos carregados (detector + landmarks + recognition)');
+            console.log(`   face-api params: inputSize=224, scoreThreshold=0.5, detectionInterval=${this.detectionIntervalMs}ms, snapshotInterval=${this.snapshotIntervalMs}ms`);
+            console.log(`   motion params: threshold=${this.motionThreshold}, minPixels=${this.motionMinPixels}, checkInterval=${this.motionCheckMs}ms, burstInterval=${this.burstIntervalMs}ms, burstDuration=${this.burstDurationMs / 1000}s`);
             
             // Load COCO-SSD for animal detection
             if (window.animalDetector) {
@@ -104,10 +136,19 @@ class PresenceApp {
      * Request camera, size canvases, and start detection loop.
      */
     async startCamera() {
-        this.stream = await navigator.mediaDevices.getUserMedia({
-            video: { width: { ideal: 1280 }, height: { ideal: 720 } },
-            audio: false
-        });
+        // Try preferred facing mode, fall back to any camera
+        try {
+            this.stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: { ideal: this.facingMode }, width: { ideal: 1280 }, height: { ideal: 720 } },
+                audio: false
+            });
+        } catch (e) {
+            console.warn(`⚠️ Could not open ${this.facingMode} camera, falling back`, e.message);
+            this.stream = await navigator.mediaDevices.getUserMedia({
+                video: { width: { ideal: 1280 }, height: { ideal: 720 } },
+                audio: false
+            });
+        }
 
         this.videoEl.srcObject = this.stream;
         
@@ -125,8 +166,22 @@ class PresenceApp {
         
         this.isRunning = true;
         this.updateStatus('Câmera ativa', 'success');
+        console.log(`📷 Camera started: facingMode=${this.facingMode}`);
         
         this.detectLoop();
+    }
+
+    /**
+     * Stop current camera and restart with new settings.
+     */
+    async restartCamera() {
+        this.isRunning = false;
+        if (this.stream) {
+            this.stream.getTracks().forEach(t => t.stop());
+            this.stream = null;
+        }
+        this.prevGray = null; // reset motion detection baseline
+        await this.startCamera();
     }
 
     /**
@@ -173,72 +228,44 @@ class PresenceApp {
                 }
             }
 
-            // Periodic snapshot every snapshotIntervalMs — always emits exactly one event
+            // --- Motion detection ---
+            const motionNow = Date.now();
+            if (motionNow - this.lastMotionCheckTs >= this.motionCheckMs) {
+                this.lastMotionCheckTs = motionNow;
+                const motionDetected = this.detectMotion();
+                if (motionDetected && !this.burstMode) {
+                    this.burstMode = true;
+                    this.burstStartTs = motionNow;
+                    this.lastBurstSnapshotTs = 0;
+                    console.log('🔴 Motion detected — burst mode ON');
+                }
+            }
+
+            // --- Snapshot emission ---
             const snapNow = Date.now();
-            if (window.eventManager && (snapNow - this.lastSnapshotTs >= this.snapshotIntervalMs)) {
+            let shouldSnap = false;
+
+            if (this.burstMode) {
+                // During burst: snapshot every burstIntervalMs
+                if (snapNow - this.lastBurstSnapshotTs >= this.burstIntervalMs) {
+                    shouldSnap = true;
+                    this.lastBurstSnapshotTs = snapNow;
+                }
+                // End burst after burstDurationMs
+                if (snapNow - this.burstStartTs >= this.burstDurationMs) {
+                    this.burstMode = false;
+                    console.log('⚪ Burst mode OFF — back to normal');
+                }
+            } else {
+                // Normal mode: periodic snapshot every snapshotIntervalMs
+                if (snapNow - this.lastSnapshotTs >= this.snapshotIntervalMs) {
+                    shouldSnap = true;
+                }
+            }
+
+            if (window.eventManager && shouldSnap) {
                 this.lastSnapshotTs = snapNow;
-                const snapshot = this.getSnapshot();
-                const timestamp = new Date().toISOString();
-                const faceCount = detections.length;
-                const animalCount = window.animalDetector ? window.animalDetector.lastAnimals.length : 0;
-
-                // Build people array from face detections
-                const people = faceCount > 0 ? detections.map(det => {
-                    const descriptor = det.descriptor ? Array.from(det.descriptor) : null;
-                    let name = 'unknown';
-                    let subjectId = null;
-                    // Resolve name and stable subject_id from in-memory recognition history
-                    if (descriptor && window.presenceHistory) {
-                        const key = window.presenceHistory.findMatchByDescriptor({ descriptor });
-                        if (key !== null) {
-                            const person = window.presenceHistory.people.get(key);
-                            if (person) {
-                                subjectId = person.subjectId;
-                                if (person.personName) {
-                                    name = person.personName;
-                                }
-                            }
-                        }
-                    }
-                    return {
-                        subject_id: subjectId,
-                        name,
-                        score: det.detection.score || null,
-                        box: det.detection.box ? {
-                            x: det.detection.box.x,
-                            y: det.detection.box.y,
-                            width: det.detection.box.width,
-                            height: det.detection.box.height
-                        } : null,
-                        descriptor
-                    };
-                }) : [];
-
-                // Build pets array from animal detections
-                const pets = (animalCount > 0 && window.animalDetector)
-                    ? window.animalDetector.lastAnimals.map(a => {
-                        const [x, y, w, h] = a.bbox;
-                        const color = window.animalDetector.extractAvgColor(x, y, w, h);
-                        return {
-                            subject_id: crypto.randomUUID(),
-                            name: a.class,
-                            species: a.class,
-                            score: a.score,
-                            bbox: a.bbox,
-                            aspectRatio: h > 0 ? w / h : 1,
-                            color
-                        };
-                    }) : [];
-
-                // Emit a single unified snapshot event with all detected subjects
-                window.eventManager.emit('snapshotTaken', {
-                    faceCount,
-                    animalCount,
-                    people,
-                    pets,
-                    timestamp,
-                    snapshot
-                });
+                this.emitSnapshot(detections);
             }
             
         } catch (error) {
@@ -246,6 +273,105 @@ class PresenceApp {
         }
 
         requestAnimationFrame(() => this.detectLoop());
+    }
+
+    /**
+     * Build people/pets arrays from current detections and emit snapshotTaken.
+     */
+    emitSnapshot(detections) {
+        const snapshot = this.getSnapshot();
+        const timestamp = new Date().toISOString();
+        const faceCount = detections.length;
+        const animalCount = window.animalDetector ? window.animalDetector.lastAnimals.length : 0;
+
+        const people = faceCount > 0 ? detections.map(det => {
+            const descriptor = det.descriptor ? Array.from(det.descriptor) : null;
+            let name = 'unknown';
+            let subjectId = null;
+            if (descriptor && window.presenceHistory) {
+                const key = window.presenceHistory.findMatchByDescriptor({ descriptor });
+                if (key !== null) {
+                    const person = window.presenceHistory.people.get(key);
+                    if (person) {
+                        subjectId = person.subjectId;
+                        if (person.personName) name = person.personName;
+                    }
+                }
+            }
+            return {
+                subject_id: subjectId,
+                name,
+                score: det.detection.score || null,
+                box: det.detection.box ? {
+                    x: det.detection.box.x,
+                    y: det.detection.box.y,
+                    width: det.detection.box.width,
+                    height: det.detection.box.height
+                } : null,
+                descriptor
+            };
+        }) : [];
+
+        const pets = (animalCount > 0 && window.animalDetector)
+            ? window.animalDetector.lastAnimals.map(a => {
+                const [x, y, w, h] = a.bbox;
+                const color = window.animalDetector.extractAvgColor(x, y, w, h);
+                return {
+                    subject_id: crypto.randomUUID(),
+                    name: a.class,
+                    species: a.class,
+                    score: a.score,
+                    bbox: a.bbox,
+                    aspectRatio: h > 0 ? w / h : 1,
+                    color
+                };
+            }) : [];
+
+        window.eventManager.emit('snapshotTaken', {
+            faceCount,
+            animalCount,
+            people,
+            pets,
+            timestamp,
+            snapshot,
+            motion: this.burstMode
+        });
+    }
+
+    /**
+     * Compare current frame with previous to detect motion.
+     * Returns true if significant pixel change is found.
+     */
+    detectMotion() {
+        if (!this.videoEl.videoWidth) return false;
+        const ctx = this.motionCanvas.getContext('2d', { willReadFrequently: true });
+        ctx.drawImage(this.videoEl, 0, 0, this.motionWidth, this.motionHeight);
+        const frame = ctx.getImageData(0, 0, this.motionWidth, this.motionHeight);
+        const data = frame.data;
+        const len = this.motionWidth * this.motionHeight;
+
+        // Convert to grayscale
+        const gray = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+            const off = i * 4;
+            gray[i] = (data[off] * 77 + data[off + 1] * 150 + data[off + 2] * 29) >> 8;
+        }
+
+        if (!this.prevGray) {
+            this.prevGray = gray;
+            return false;
+        }
+
+        // Count pixels with significant change
+        let changed = 0;
+        for (let i = 0; i < len; i++) {
+            if (Math.abs(gray[i] - this.prevGray[i]) > this.motionThreshold) {
+                changed++;
+            }
+        }
+        this.prevGray = gray;
+
+        return (changed / len) >= this.motionMinPixels;
     }
 
     /**

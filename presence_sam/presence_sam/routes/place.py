@@ -8,7 +8,7 @@ from ..database import get_session
 
 @router.get("/place/{id}")
 def get(id: str = None):
-    return RedirectResponse(url=f"/app/hub.html?place={id}")
+    return RedirectResponse(url=f"/app/place.html?place={id}")
 
 @router.get("/place/{id}/presence")
 def place_get_presence(id: str = None, minutes: int = 60, session: Session = Depends(get_session)):

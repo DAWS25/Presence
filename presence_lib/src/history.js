@@ -439,31 +439,19 @@ class PresenceHistory {
             const hasPeople = (eventItem.faceCount || 0) > 0;
             const hasPets = (eventItem.animalCount || 0) > 0;
 
-            if (!hasPeople && !hasPets) {
-                return `
-                    <div class="event-card" data-event-index="${eventIndex}">
-                        ${imgHtml}
-                        <div class="event-info">
-                            <div class="event-header">
-                                <div class="event-title">📸 Snapshot</div>
-                                <div class="event-time">${timeStr}</div>
-                            </div>
-                            <div class="event-meta">No detections</div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            const titleIcon = hasPeople ? '👤' : '🐾';
+            const titleIcon = hasPeople ? '👤' : hasPets ? '🐾' : '📸';
             const titleText = hasPeople
                 ? (window.i18n ? window.i18n.t('events.detection.title') : 'Deteccao')
-                : (window.i18n ? window.i18n.t('events.detection.animal') : 'Pet Detected');
+                : hasPets
+                    ? (window.i18n ? window.i18n.t('events.detection.animal') : 'Pet Detected')
+                    : 'Snapshot';
             const subjectName = hasPeople
                 ? (eventItem.personName || (window.i18n ? window.i18n.t('events.detection.unknown') : 'Unknown presence'))
                 : (eventItem.animalNames || '');
             const meta = [];
             if (hasPeople) meta.push(`Faces: ${eventItem.faceCount}`);
             if (hasPets) meta.push(`Pets: ${eventItem.animalCount}`);
+            if (!hasPeople && !hasPets) meta.push('No detections');
 
             return `
                 <div class="event-card event-card-clickable" data-event-index="${eventIndex}">
@@ -732,12 +720,12 @@ class PresenceHistory {
                 body: JSON.stringify(body),
             });
             if (!res.ok) {
-                console.warn(`[history] Failed to save event: ${res.status}`);
+                console.error(`[history] Failed to save event: ${res.status}`, body);
                 return;
             }
-            console.log(`[history] Event ${eventItem.event_id} updated on server`);
+            console.log(`[history] Event ${eventItem.event_id} updated on server`, body);
         } catch (err) {
-            console.warn('[history] Failed to save event:', err);
+            console.error('[history] Failed to save event:', err, body);
         }
     }
 
