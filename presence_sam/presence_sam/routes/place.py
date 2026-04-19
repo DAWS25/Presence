@@ -12,7 +12,7 @@ def get(id: str = None):
 
 @router.get("/place/{id}/presence")
 def place_get_presence(id: str = None, minutes: int = 60, session: Session = Depends(get_session)):
-    minutes = max(1, min(minutes, 1440))
+    minutes = max(0, min(minutes, 10080))
     since = datetime.now(timezone.utc) - timedelta(minutes=minutes)
     results = session.exec(
         text("""

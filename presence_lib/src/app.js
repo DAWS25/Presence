@@ -37,7 +37,7 @@ class PresenceApp {
         this.burstMode = false;
         this.burstStartTs = 0;
         this.burstDurationMs = 30000;   // 30 seconds of burst
-        this.burstIntervalMs = 3000;    // snapshot every 3s during burst
+        this.burstIntervalMs = 5000;    // snapshot every 5s during burst
         this.lastBurstSnapshotTs = 0;
         
         this.isRunning = false;

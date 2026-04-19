@@ -4,7 +4,7 @@
    ======================================== */
 
 (function () {
-    const POLL_INTERVAL = 5000;
+    const POLL_INTERVAL = 15000;
     const placeId = new URLSearchParams(window.location.search).get('place');
 
     const placeIdEl = document.getElementById('placeId');
@@ -22,9 +22,6 @@
     }
     placeIdEl.textContent = placeId;
     placeIdEl.href = `place.html?place=${encodeURIComponent(placeId)}`;
-
-    let knownCount = 0;
-    let presenceVersion = 0;
 
     function getMinutes() {
         const val = parseInt(timeWindowSlider.value, 10);
@@ -46,10 +43,7 @@
 
     timeWindowSlider.addEventListener('input', () => {
         timeWindowLabel.textContent = formatMinutes(getMinutes());
-        presenceVersion = 0; // force refresh
-        knownCount = 0;      // force events refresh
-        fetchPresence();
-        fetchEvents();
+        fetchAll();
     });
 
     async function fetchPresence() {
@@ -61,11 +55,7 @@
                 return;
             }
             const data = await res.json();
-            const presence = data.presence || [];
-            const newVersion = JSON.stringify(presence);
-            if (newVersion === presenceVersion) return;
-            presenceVersion = newVersion;
-            renderPresence(presence);
+            renderPresence(data.presence || []);
         } catch (err) {
             window.handleError('Failed to fetch presence:', err);
         }
@@ -74,30 +64,31 @@
     async function fetchEvents() {
         try {
             const minutes = getMinutes();
-            const res = await fetch(`/fn/place/${encodeURIComponent(placeId)}/events?limit=100&minutes=${minutes}`);
+            const res = await fetch(`/fn/place/${encodeURIComponent(placeId)}/events?minutes=${minutes}`);
             if (!res.ok) {
                 window.handleError(`Failed to fetch events: ${res.status}`);
                 return;
             }
             const data = await res.json();
             const events = data.events || [];
-            if (events.length === knownCount) return;
-            knownCount = events.length;
-            renderMetrics(events);
+            const total = data.total != null ? data.total : events.length;
+            renderMetrics(events, total);
             renderStream(events);
         } catch (err) {
             window.handleError('Failed to fetch events:', err);
         }
     }
 
-    function renderMetrics(events) {
-        const total = events.length;
+    function fetchAll() {
+        fetchPresence();
+        fetchEvents();
+    }
+
+    function renderMetrics(events, total) {
         metricTotal.textContent = total;
 
-        if (total > 0) {
-            const first = new Date(events[0].created_at);
-            const last = new Date(events[total - 1].created_at);
-            const minutes = Math.max((last - first) / 60000, 1);
+        const minutes = getMinutes();
+        if (total > 0 && minutes > 0) {
             metricPerMin.textContent = (total / minutes).toFixed(1);
         } else {
             metricPerMin.textContent = '0';
@@ -223,8 +214,6 @@
     }
 
     timeWindowLabel.textContent = formatMinutes(getMinutes());
-    fetchPresence();
-    fetchEvents();
-    setInterval(fetchPresence, POLL_INTERVAL);
-    setInterval(fetchEvents, 15000);
+    fetchAll();
+    setInterval(fetchAll, POLL_INTERVAL);
 })();
