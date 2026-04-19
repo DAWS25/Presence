@@ -19,7 +19,14 @@ def place_get_presence(id: str = None, minutes: int = 60, session: Session = Dep
             SELECT i.id, i.individual_type, i.name,
                    COUNT(DISTINCT e.id) AS event_count,
                    MIN(e.created_at) AS first_seen,
-                   MAX(e.created_at) AS last_seen
+                   MAX(e.created_at) AS last_seen,
+                   (SELECT e2.payload->>'snapshot'
+                    FROM events e2
+                    JOIN event_individuals ei2 ON ei2.event_id = e2.id
+                    WHERE ei2.individual_id = i.id
+                      AND e2.place_id = :place_id AND e2.created_at >= :since
+                    ORDER BY e2.created_at DESC LIMIT 1
+                   ) AS snapshot
             FROM events e
             LEFT JOIN event_individuals ei ON ei.event_id = e.id
             LEFT JOIN individuals i ON i.id = ei.individual_id
@@ -34,7 +41,7 @@ def place_get_presence(id: str = None, minutes: int = 60, session: Session = Dep
     unidentified = None
 
     for row in results:
-        individual_id, ind_type, name, event_count, first_seen, last_seen = row
+        individual_id, ind_type, name, event_count, first_seen, last_seen, snapshot = row
         if individual_id is None:
             # Events with no linked individual
             if unidentified is None:
@@ -44,6 +51,7 @@ def place_get_presence(id: str = None, minutes: int = 60, session: Session = Dep
                     "event_count": event_count,
                     "first_seen": first_seen.isoformat(),
                     "last_seen": last_seen.isoformat(),
+                    "snapshot": snapshot,
                 }
             else:
                 unidentified["event_count"] += event_count
@@ -51,6 +59,8 @@ def place_get_presence(id: str = None, minutes: int = 60, session: Session = Dep
                     unidentified["first_seen"] = first_seen.isoformat()
                 if last_seen.isoformat() > unidentified["last_seen"]:
                     unidentified["last_seen"] = last_seen.isoformat()
+                if snapshot:
+                    unidentified["snapshot"] = snapshot
             continue
         entry = {
             "individual_id": individual_id,
@@ -59,6 +69,7 @@ def place_get_presence(id: str = None, minutes: int = 60, session: Session = Dep
             "event_count": event_count,
             "first_seen": first_seen.isoformat(),
             "last_seen": last_seen.isoformat(),
+            "snapshot": snapshot,
         }
         if ind_type == 'person' and name == 'unknown':
             entry["type"] = "unidentified"

@@ -183,11 +183,22 @@ class PresenceApp {
                 const animalCount = window.animalDetector ? window.animalDetector.lastAnimals.length : 0;
 
                 if (faceCount > 0) {
-                    window.eventManager.emit('faceDetected', {
-                        faceCount,
-                        people: detections.map(det => ({
+                    const people = detections.map(det => {
+                        const descriptor = det.descriptor ? Array.from(det.descriptor) : null;
+                        let name = 'unknown';
+                        // Resolve name from in-memory recognition history
+                        if (descriptor && window.presenceHistory) {
+                            const key = window.presenceHistory.findMatchByDescriptor({ descriptor });
+                            if (key !== null) {
+                                const person = window.presenceHistory.people.get(key);
+                                if (person && person.personName) {
+                                    name = person.personName;
+                                }
+                            }
+                        }
+                        return {
                             id: crypto.randomUUID(),
-                            name: 'unknown',
+                            name,
                             score: det.detection.score || null,
                             box: det.detection.box ? {
                                 x: det.detection.box.x,
@@ -195,8 +206,12 @@ class PresenceApp {
                                 width: det.detection.box.width,
                                 height: det.detection.box.height
                             } : null,
-                            descriptor: det.descriptor ? Array.from(det.descriptor) : null
-                        })),
+                            descriptor
+                        };
+                    });
+                    window.eventManager.emit('faceDetected', {
+                        faceCount,
+                        people,
                         pets: [],
                         timestamp,
                         snapshot

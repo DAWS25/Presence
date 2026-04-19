@@ -109,12 +109,16 @@
 
     function renderPresence(presence) {
         if (presence.length === 0) {
-            presenceBody.innerHTML = '<tr><td colspan="4" class="empty-state">No presence detected yet</td></tr>';
+            presenceBody.innerHTML = '<tr><td colspan="5" class="empty-state">No presence detected yet</td></tr>';
             return;
         }
         presenceBody.innerHTML = presence.map(entry => {
+            const imgHtml = entry.snapshot
+                ? `<img src="${entry.snapshot}" alt="" style="width:48px;height:36px;object-fit:cover;border-radius:4px;">`
+                : '<span style="display:inline-block;width:48px;height:36px;background:var(--bg2);border-radius:4px;"></span>';
             return `
             <tr>
+                <td>${imgHtml}</td>
                 <td>${escapeHtml(entry.label)}</td>
                 <td>${formatTime(entry.last_seen)}</td>
                 <td>${formatTime(entry.first_seen)}</td>

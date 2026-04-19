@@ -128,6 +128,11 @@ class PresenceHistory {
             detectedPets: [],
         });
         this.render();
+
+        // If any person was recognized, update the server so the event stores the resolved name
+        if (knownName && data?.event_id) {
+            this._saveEventToServer(this.events[0]);
+        }
     }
 
     /**
