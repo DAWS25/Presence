@@ -86,18 +86,17 @@
         }
         .time-slider {
             display: flex;
-            align-items: center;
-            gap: 1rem;
+            flex-direction: column;
+            gap: 0.4rem;
             margin-bottom: 0.75rem;
             font-size: 0.85rem;
             color: var(--fg2);
         }
         .time-slider label {
             white-space: nowrap;
-            min-width: 14ch;
         }
         .time-slider input[type="range"] {
-            flex: 1;
+            width: 100%;
             accent-color: var(--yellow);
             cursor: pointer;
         }
@@ -212,8 +211,8 @@
         <div class="hub-section">
             <h2>Presence</h2>
             <div class="time-slider">
-                <label for="timeWindow">Time window: <span id="timeWindowLabel">60 min</span></label>
-                <input type="range" id="timeWindow" min="1" max="1440" value="60" step="1">
+                <label for="timeWindow">Time window: <span id="timeWindowLabel">1440 minutes — 1 day</span></label>
+                <input type="range" id="timeWindow" min="0" max="10080" value="1440" step="1">
             </div>
             <table class="presence-table">
                 <thead>

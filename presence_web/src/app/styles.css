@@ -1307,6 +1307,9 @@ html, body {
 /* Settings Button */
 .hud-settings-btn {
     pointer-events: auto;
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
     background: rgba(50, 48, 47, 0.7);
     border: 1px solid rgba(125, 174, 163, 0.35);
     color: var(--fg1);
@@ -1319,6 +1322,7 @@ html, body {
     align-items: center;
     justify-content: center;
     transition: background 0.2s, border-color 0.2s;
+    z-index: 10;
 }
 
 .hud-settings-btn:hover {

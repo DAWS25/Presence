@@ -138,11 +138,19 @@ async def events_update(place_id: str, request: Request, session: Session = Depe
 
 
 @router.get("/place/{place_id}/events")
-def events_get(place_id: str, limit: int = 100, session: Session = Depends(get_session)):
-    results = session.exec(
-        text("SELECT event_type, people, pets, payload, created_at FROM events WHERE place_id = :place_id ORDER BY created_at DESC LIMIT :limit"),
-        params={"place_id": place_id, "limit": limit},
-    ).all()
+def events_get(place_id: str, limit: int = 100, minutes: int = None, session: Session = Depends(get_session)):
+    if minutes == 0:
+        return {"place_id": place_id, "events": []}
+    if minutes:
+        results = session.exec(
+            text("SELECT event_type, people, pets, payload, created_at FROM events WHERE place_id = :place_id AND created_at >= NOW() - INTERVAL '1 minute' * :minutes ORDER BY created_at DESC LIMIT :limit"),
+            params={"place_id": place_id, "limit": limit, "minutes": minutes},
+        ).all()
+    else:
+        results = session.exec(
+            text("SELECT event_type, people, pets, payload, created_at FROM events WHERE place_id = :place_id ORDER BY created_at DESC LIMIT :limit"),
+            params={"place_id": place_id, "limit": limit},
+        ).all()
     events = [{
         "event_type": row[0],
         "people": json.loads(row[1]) if isinstance(row[1], str) else (row[1] or []),

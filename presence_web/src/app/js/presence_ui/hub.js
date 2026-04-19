@@ -27,21 +27,29 @@
     let presenceVersion = 0;
 
     function getMinutes() {
-        return parseInt(timeWindowSlider.value, 10) || 60;
+        const val = parseInt(timeWindowSlider.value, 10);
+        return isNaN(val) ? 1440 : val;
     }
 
     function formatMinutes(m) {
-        if (m < 60) return `${m} min`;
-        const h = Math.floor(m / 60);
-        const r = m % 60;
-        if (r === 0) return h === 1 ? '1 hour' : `${h} hours`;
-        return `${h}h ${r}m`;
+        if (m === 0) return '0 minutes';
+        if (m < 60) return `${m} minutes`;
+        const days = Math.floor(m / 1440);
+        const hours = Math.floor((m % 1440) / 60);
+        const mins = m % 60;
+        let label = '';
+        if (days > 0) label += days === 1 ? '1 day' : `${days} days`;
+        if (hours > 0) label += (label ? ' ' : '') + (hours === 1 ? '1 hour' : `${hours} hours`);
+        if (mins > 0) label += (label ? ' ' : '') + `${mins}m`;
+        return `${m} minutes — ${label}`;
     }
 
     timeWindowSlider.addEventListener('input', () => {
         timeWindowLabel.textContent = formatMinutes(getMinutes());
         presenceVersion = 0; // force refresh
+        knownCount = 0;      // force events refresh
         fetchPresence();
+        fetchEvents();
     });
 
     async function fetchPresence() {
@@ -65,7 +73,8 @@
 
     async function fetchEvents() {
         try {
-            const res = await fetch(`/fn/place/${encodeURIComponent(placeId)}/events?limit=100`);
+            const minutes = getMinutes();
+            const res = await fetch(`/fn/place/${encodeURIComponent(placeId)}/events?limit=100&minutes=${minutes}`);
             if (!res.ok) {
                 window.handleError(`Failed to fetch events: ${res.status}`);
                 return;
@@ -213,8 +222,9 @@
         return el.innerHTML;
     }
 
+    timeWindowLabel.textContent = formatMinutes(getMinutes());
     fetchPresence();
     fetchEvents();
     setInterval(fetchPresence, POLL_INTERVAL);
-    setInterval(fetchEvents, POLL_INTERVAL);
+    setInterval(fetchEvents, 15000);
 })();

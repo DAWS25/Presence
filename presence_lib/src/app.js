@@ -44,6 +44,14 @@ class PresenceApp {
         this.stream = null;
         this.facingMode = 'environment'; // prefer back camera on mobile
 
+        // Page refresh timer — 1 hour ±10% random variation
+        this.refreshBaseMs = 60 * 60 * 1000; // 1 hour
+        this.refreshVariation = 0.10;        // ±10%
+        this.refreshMs = this.refreshBaseMs * (1 + (Math.random() * 2 - 1) * this.refreshVariation);
+        this.refreshTargetTs = Date.now() + this.refreshMs;
+        this.refreshCountdownEl = document.getElementById('refreshCountdown');
+        this._startRefreshTimer();
+
         // Camera selector in settings
         this.cameraSelect = document.getElementById('cameraSelect');
         if (this.cameraSelect) {
@@ -61,7 +69,7 @@ class PresenceApp {
      * Initialize dependencies, models, and version in UI.
      */
     async init() {
-        console.log('🚀 Inicializando...');
+        console.log(`🚀 Inicializando... ${typeof VERSION !== 'undefined' ? 'v' + VERSION : ''}`);
         
         // Wait for translations to be loaded
         if (window.i18n && window.i18n.ready) {
@@ -182,6 +190,27 @@ class PresenceApp {
         }
         this.prevGray = null; // reset motion detection baseline
         await this.startCamera();
+    }
+
+    /**
+     * Start page refresh timer with countdown display.
+     */
+    _startRefreshTimer() {
+        // Update countdown every second
+        this._refreshInterval = setInterval(() => {
+            const remaining = Math.max(0, this.refreshTargetTs - Date.now());
+            if (remaining <= 0) {
+                console.log('[presence] Refresh timer expired, reloading page');
+                clearInterval(this._refreshInterval);
+                window.location.reload();
+                return;
+            }
+            if (this.refreshCountdownEl) {
+                const mins = Math.floor(remaining / 60000);
+                const secs = Math.floor((remaining % 60000) / 1000);
+                this.refreshCountdownEl.textContent = `${mins}m ${secs.toString().padStart(2, '0')}s`;
+            }
+        }, 1000);
     }
 
     /**
