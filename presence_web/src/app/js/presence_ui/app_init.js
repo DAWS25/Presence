@@ -12,10 +12,10 @@ function initApp() {
     const place = urlParams.get('place');
     const plidEl = document.getElementById('sharePlid');
     if (plidEl && place) {
-        const placeUrl = `/${place}`;
+        const hubUrl = `/app/hub.html?place=${encodeURIComponent(place)}`;
         plidEl.textContent = place;
-        plidEl.href = placeUrl;
-        plidEl.target = '_top';
+        plidEl.href = hubUrl;
+        plidEl.target = '_blank';
     }
 
     const qrEl = document.getElementById('shareQr');

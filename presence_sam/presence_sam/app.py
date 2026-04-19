@@ -36,6 +36,9 @@ def include_discovered_routers(application: FastAPI) -> None:
             application.include_router(router)
 
 
+from .database import create_db_and_tables
+
 include_discovered_routers(app)
+create_db_and_tables()
 
 handler = Mangum(app)

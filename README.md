@@ -23,7 +23,7 @@ It should be as simple as this:
 1. Run `devbox services up` to start all application services (database, web server, proxy, ...).
 1. Access the application:
    * Using HTTPS on https://local.daws25.com:10443/ to test locally with the same browser policies regarding HTTPS and CORS.
-   * Using HTTP(S) over your codespaces forwarded port
+   * Using HTTP(S) over your codespaces forwarded port (10080). You can make the port public for convenience.
 
 Please open a discussion if you have any issues running this project.
 

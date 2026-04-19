@@ -9,7 +9,7 @@ class EventManager {
      */
     constructor() {
         this.listeners = {};
-        this.cooldowns = { faceDetected: 30000, animalDetected: 30000 }; // ms per event
+        this.cooldowns = { faceDetected: 30000 }; // ms per event
         this.lastEmitTs = {};
     }
 
@@ -41,9 +41,9 @@ class EventManager {
      * Emitir um evento
      */
     /**
-     * Emit the event respecting cooldown and call listeners.
+     * Emit the event respecting cooldown, send to server, and call listeners only on success.
      */
-    emit(eventName, data) {
+    async emit(eventName, data) {
         if (!this.listeners[eventName]) return;
         const cd = this.cooldowns[eventName];
         if (cd) {
@@ -54,14 +54,34 @@ class EventManager {
             }
             this.lastEmitTs[eventName] = now;
         }
-        console.log(`🔔 Evento emitido: ${eventName}`, data);
-        this.listeners[eventName].forEach(callback => {
-            try {
-                callback(data);
-            } catch (error) {
-                console.error(`❌ Erro ao executar listener de ${eventName}:`, error);
+
+        const placeId = new URLSearchParams(window.location.search).get('place');
+        if (!placeId) {
+            window.handleError(`No place ID found in URL, cannot send event: ${eventName}`);
+            return;
+        }
+
+        try {
+            const response = await fetch(`/fn/place/${encodeURIComponent(placeId)}/events`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ event_type: eventName, ...data }),
+            });
+            if (!response.ok) {
+                window.handleError(`Server rejected event ${eventName}: ${response.status} ${response.statusText}`);
+                return;
             }
-        });
+            console.log(`🔔 Evento emitido: ${eventName}`, data);
+            this.listeners[eventName].forEach(callback => {
+                try {
+                    callback(data);
+                } catch (error) {
+                    window.handleError(`Erro ao executar listener de ${eventName}:`, error);
+                }
+            });
+        } catch (error) {
+            window.handleError(`Failed to send event ${eventName} to server:`, error);
+        }
     }
 }
 

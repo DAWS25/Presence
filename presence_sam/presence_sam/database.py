@@ -6,6 +6,8 @@ from urllib.parse import quote_plus
 import boto3
 from sqlmodel import SQLModel, create_engine, Session, text
 
+from . import models  # noqa: F401 — registers table definitions with SQLModel.metadata
+
 logger = logging.getLogger(__name__)
 
 # Build connection URL from environment variables (matching compose.yaml defaults)
@@ -39,8 +41,26 @@ engine = _get_engine()
 
 
 def create_db_and_tables():
-    """Create all SQLModel tables."""
+    """Create tables if missing and add any new columns to existing tables."""
+    from sqlalchemy import inspect
     SQLModel.metadata.create_all(engine)
+    inspector = inspect(engine)
+    with Session(engine) as session:
+        for table in SQLModel.metadata.sorted_tables:
+            if not inspector.has_table(table.name):
+                continue
+            existing = {col["name"] for col in inspector.get_columns(table.name)}
+            for col in table.columns:
+                if col.name not in existing:
+                    col_type = col.type.compile(engine.dialect)
+                    nullable = "NULL" if col.nullable else "NOT NULL"
+                    default = ""
+                    if col.server_default is not None:
+                        default = f" DEFAULT {col.server_default.arg.text}"
+                    stmt = f'ALTER TABLE {table.name} ADD COLUMN {col.name} {col_type} {nullable}{default}'
+                    logger.info(f"Applying schema change: {stmt}")
+                    session.exec(text(stmt))
+        session.commit()
 
 
 def get_session():

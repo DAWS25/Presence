@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presence Hub</title>
+    <link href="js/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='8' ry='8' fill='%2332302f'/%3E%3Ccircle cx='22' cy='26' r='6' fill='%237daea3'/%3E%3Ccircle cx='42' cy='26' r='6' fill='%237daea3'/%3E%3Cpath d='M18 42c4 4 24 4 28 0' stroke='%23a9b665' stroke-width='4' stroke-linecap='round' fill='none'/%3E%3C/svg%3E">
+    <style>
+        body {
+            overflow: auto;
+        }
+        .hub-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+        .hub-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .hub-header h1 {
+            font-size: 1.4rem;
+            color: var(--fg1);
+            margin: 0;
+        }
+        .hub-place-id {
+            font-family: monospace;
+            color: var(--blue);
+            font-size: 0.95rem;
+        }
+        .hub-section {
+            margin-bottom: 2rem;
+        }
+        .hub-section h2 {
+            font-size: 1.1rem;
+            color: var(--yellow);
+            margin-bottom: 0.75rem;
+            border-bottom: 1px solid var(--bg3);
+            padding-bottom: 0.4rem;
+        }
+        .presence-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .presence-table th {
+            text-align: left;
+            color: var(--gray);
+            font-weight: 500;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid var(--bg3);
+        }
+        .presence-table td {
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid var(--bg2);
+            font-size: 0.9rem;
+        }
+        .presence-table tr:hover {
+            background-color: var(--bg1);
+        }
+        .badge-person {
+            background-color: var(--blue);
+            color: var(--bg0);
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        .badge-pet {
+            background-color: var(--green);
+            color: var(--bg0);
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+        .event-stream {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid var(--bg3);
+            border-radius: 6px;
+            background-color: var(--bg1);
+        }
+        .event-row {
+            display: flex;
+            gap: 1rem;
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid var(--bg2);
+            font-size: 0.85rem;
+            font-family: monospace;
+        }
+        .event-row:last-child {
+            border-bottom: none;
+        }
+        .event-time {
+            color: var(--gray);
+            flex-shrink: 0;
+            min-width: 8ch;
+        }
+        .event-type {
+            color: var(--aqua);
+            flex-shrink: 0;
+            min-width: 16ch;
+        }
+        .event-detail {
+            color: var(--fg);
+        }
+        .empty-state {
+            color: var(--gray);
+            text-align: center;
+            padding: 2rem;
+            font-style: italic;
+        }
+        .metrics-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .metric-card {
+            flex: 1;
+            background-color: var(--bg1);
+            border: 1px solid var(--bg3);
+            border-radius: 6px;
+            padding: 1rem;
+            text-align: center;
+        }
+        .metric-card .metric-value {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--fg1);
+            line-height: 1.2;
+        }
+        .metric-card .metric-label {
+            font-size: 0.8rem;
+            color: var(--gray);
+            text-transform: uppercase;
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="hub-container">
+        <div class="hub-header">
+            <h1>Presence Hub</h1>
+            <a class="hub-place-id" id="placeId" target="_blank" rel="noopener"></a>
+        </div>
+
+        <div class="hub-section">
+            <h2>Presence</h2>
+            <table class="presence-table">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Label</th>
+                        <th>Count</th>
+                        <th>Last Seen</th>
+                    </tr>
+                </thead>
+                <tbody id="presenceBody">
+                    <tr><td colspan="4" class="empty-state">No presence detected yet</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="metrics-row">
+            <div class="metric-card">
+                <div class="metric-value" id="metricTotal">0</div>
+                <div class="metric-label">Events Total</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="metricPerMin">0</div>
+                <div class="metric-label">Events / Min</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="metricPresences">0</div>
+                <div class="metric-label">Presences</div>
+            </div>
+        </div>
+
+        <div class="hub-section">
+            <h2>Event Stream</h2>
+            <div class="event-stream" id="eventStream">
+                <div class="empty-state">No events yet</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/presence_lib/error.js"></script>
+    <script src="js/presence_ui/hub.js"></script>
+</body>
+</html>

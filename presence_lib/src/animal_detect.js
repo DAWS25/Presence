@@ -16,7 +16,7 @@ class AnimalDetector {
         this.lastDetectTs = 0;
         this.detectionIntervalMs = 500;
         this.lastEventTs = 0;
-        this.cooldownMs = 30000;
+        this.cooldownMs = 15000;
         this.videoEl = document.getElementById('video');
         this.canvasEl = document.getElementById('canvas');
         this.animalCountEl = document.getElementById('animalCount');
