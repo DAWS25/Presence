@@ -57,24 +57,6 @@ class AnimalDetector {
             this.animalCountEl.textContent = animals.length;
         }
 
-        if (animals.length > 0 && window.eventManager) {
-            const ts = Date.now();
-            if (ts - this.lastEventTs >= this.cooldownMs) {
-                const snapshot = this.getSnapshot ? this.getSnapshot() : null;
-                window.eventManager.emit('animalDetected', {
-                    animalCount: animals.length,
-                    animals: animals.map(a => ({
-                        class: a.class,
-                        score: a.score,
-                        bbox: a.bbox
-                    })),
-                    timestamp: new Date().toISOString(),
-                    snapshot
-                });
-                this.lastEventTs = ts;
-            }
-        }
-
         return animals;
     }
 
@@ -91,6 +73,33 @@ class AnimalDetector {
             ctx.strokeRect(x, y, w, h);
             const label = `${animal.class} ${Math.round(animal.score * 100)}%`;
             ctx.fillText(label, x, y > 16 ? y - 4 : y + h + 14);
+        }
+    }
+
+    /**
+     * Extract average RGB color from a region of the video frame.
+     */
+    extractAvgColor(x, y, w, h) {
+        try {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const sw = Math.max(1, Math.round(w));
+            const sh = Math.max(1, Math.round(h));
+            canvas.width = sw;
+            canvas.height = sh;
+            ctx.drawImage(this.videoEl, x, y, w, h, 0, 0, sw, sh);
+            const data = ctx.getImageData(0, 0, sw, sh).data;
+            let r = 0, g = 0, b = 0, count = 0;
+            for (let i = 0; i < data.length; i += 16) { // sample every 4th pixel
+                r += data[i];
+                g += data[i + 1];
+                b += data[i + 2];
+                count++;
+            }
+            if (count === 0) return [128, 128, 128];
+            return [Math.round(r / count), Math.round(g / count), Math.round(b / count)];
+        } catch {
+            return [128, 128, 128];
         }
     }
 }

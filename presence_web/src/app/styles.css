@@ -580,6 +580,64 @@ html, body {
     border-color: var(--aqua);
 }
 
+.event-detail-section {
+    margin-bottom: 0.5rem;
+}
+
+.event-detail-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.25rem;
+    font-size: 0.8rem;
+    color: var(--fg2);
+    font-weight: 600;
+}
+
+.individual-row {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: 0.25rem;
+}
+
+.individual-species {
+    color: var(--gray);
+    font-size: 0.7rem;
+    white-space: nowrap;
+}
+
+.individual-remove {
+    background: none;
+    border: none;
+    color: var(--red, #ea6962);
+    cursor: pointer;
+    font-size: 0.75rem;
+    padding: 0.1rem 0.3rem;
+    border-radius: 4px;
+    opacity: 0.6;
+    transition: opacity 0.15s;
+}
+
+.individual-remove:hover {
+    opacity: 1;
+}
+
+.individual-add {
+    background: none;
+    border: 1px solid var(--bg3);
+    color: var(--aqua);
+    cursor: pointer;
+    font-size: 0.7rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    transition: border-color 0.15s;
+}
+
+.individual-add:hover {
+    border-color: var(--aqua);
+}
+
 .event-detail-save {
     background: var(--aqua);
     color: var(--bg);
@@ -1244,6 +1302,87 @@ html, body {
     gap: 0.4rem;
     color: var(--gray);
     font-size: 0.9rem;
+}
+
+/* Settings Button */
+.hud-settings-btn {
+    pointer-events: auto;
+    background: rgba(50, 48, 47, 0.7);
+    border: 1px solid rgba(125, 174, 163, 0.35);
+    color: var(--fg1);
+    font-size: 1.3rem;
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.hud-settings-btn:hover {
+    background: rgba(50, 48, 47, 0.9);
+    border-color: var(--blue);
+}
+
+/* Settings Controls */
+.settings-row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.settings-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--fg1);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.settings-control {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.settings-range {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--bg3);
+    outline: none;
+}
+
+.settings-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--blue);
+    cursor: pointer;
+    border: 2px solid var(--fg1);
+}
+
+.settings-range::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--blue);
+    cursor: pointer;
+    border: 2px solid var(--fg1);
+}
+
+.settings-value {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--blue);
+    min-width: 3rem;
+    text-align: center;
 }
 
 /* ========================================

@@ -77,36 +77,97 @@
             border-radius: 4px;
             font-size: 0.8rem;
         }
-        .event-stream {
-            max-height: 400px;
-            overflow-y: auto;
-            border: 1px solid var(--bg3);
-            border-radius: 6px;
-            background-color: var(--bg1);
+        .badge-unidentified {
+            background-color: var(--gray);
+            color: var(--bg0);
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
         }
-        .event-row {
+        .time-slider {
             display: flex;
+            align-items: center;
             gap: 1rem;
-            padding: 0.5rem 0.75rem;
-            border-bottom: 1px solid var(--bg2);
+            margin-bottom: 0.75rem;
             font-size: 0.85rem;
-            font-family: monospace;
+            color: var(--fg2);
         }
-        .event-row:last-child {
-            border-bottom: none;
+        .time-slider label {
+            white-space: nowrap;
+            min-width: 14ch;
         }
-        .event-time {
+        .time-slider input[type="range"] {
+            flex: 1;
+            accent-color: var(--yellow);
+            cursor: pointer;
+        }
+        .event-stream {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            max-height: 600px;
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+        .hub-event-card {
+            background-color: var(--bg1);
+            border: 1px solid var(--bg3);
+            border-radius: 10px;
+            overflow: hidden;
+            width: 220px;
+            display: flex;
+            flex-direction: column;
+            transition: border-color 0.2s;
+        }
+        .hub-event-card:hover {
+            border-color: var(--blue);
+        }
+        .hub-event-card img {
+            width: 100%;
+            height: 130px;
+            object-fit: cover;
+            display: block;
+            background-color: var(--bg2);
+        }
+        .hub-event-card .card-no-img {
+            width: 100%;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--bg2);
             color: var(--gray);
-            flex-shrink: 0;
-            min-width: 8ch;
+            font-size: 1.5rem;
         }
-        .event-type {
+        .hub-event-card .card-body {
+            padding: 0.6rem 0.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+            font-size: 0.78rem;
+        }
+        .hub-event-card .card-type {
             color: var(--aqua);
-            flex-shrink: 0;
-            min-width: 16ch;
+            font-weight: 600;
+            font-size: 0.82rem;
         }
-        .event-detail {
+        .hub-event-card .card-time {
+            color: var(--gray);
+            font-size: 0.72rem;
+        }
+        .hub-event-card .card-field {
+            display: flex;
+            gap: 0.4rem;
+            line-height: 1.3;
+        }
+        .hub-event-card .card-field-key {
+            color: var(--yellow);
+            font-weight: 500;
+            flex-shrink: 0;
+        }
+        .hub-event-card .card-field-val {
             color: var(--fg);
+            word-break: break-all;
         }
         .empty-state {
             color: var(--gray);
@@ -150,13 +211,17 @@
 
         <div class="hub-section">
             <h2>Presence</h2>
+            <div class="time-slider">
+                <label for="timeWindow">Time window: <span id="timeWindowLabel">60 min</span></label>
+                <input type="range" id="timeWindow" min="1" max="1440" value="60" step="1">
+            </div>
             <table class="presence-table">
                 <thead>
                     <tr>
-                        <th>Type</th>
-                        <th>Label</th>
-                        <th>Count</th>
+                        <th>Name</th>
                         <th>Last Seen</th>
+                        <th>First Seen</th>
+                        <th>Events</th>
                     </tr>
                 </thead>
                 <tbody id="presenceBody">

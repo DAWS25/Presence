@@ -60,6 +60,21 @@ def create_db_and_tables():
                     stmt = f'ALTER TABLE {table.name} ADD COLUMN {col.name} {col_type} {nullable}{default}'
                     logger.info(f"Applying schema change: {stmt}")
                     session.exec(text(stmt))
+            # Add unique constraints defined in model but missing from DB
+            existing_ucs = {tuple(sorted(uc["column_names"])) for uc in inspector.get_unique_constraints(table.name)}
+            for constraint in table.constraints:
+                from sqlalchemy import UniqueConstraint as UC
+                if isinstance(constraint, UC) and constraint.columns:
+                    col_names = tuple(sorted(c.name for c in constraint.columns))
+                    if col_names not in existing_ucs:
+                        cols = ", ".join(c.name for c in constraint.columns)
+                        cname = constraint.name or f"uq_{'_'.join(col_names)}"
+                        stmt = f'ALTER TABLE {table.name} ADD CONSTRAINT {cname} UNIQUE ({cols})'
+                        logger.info(f"Applying schema change: {stmt}")
+                        try:
+                            session.exec(text(stmt))
+                        except Exception as e:
+                            logger.warning(f"Could not add constraint {cname}: {e}")
         session.commit()
 
 

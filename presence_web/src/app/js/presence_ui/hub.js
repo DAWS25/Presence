@@ -13,6 +13,8 @@
     const metricTotal = document.getElementById('metricTotal');
     const metricPerMin = document.getElementById('metricPerMin');
     const metricPresences = document.getElementById('metricPresences');
+    const timeWindowSlider = document.getElementById('timeWindow');
+    const timeWindowLabel = document.getElementById('timeWindowLabel');
 
     if (!placeId) {
         placeIdEl.textContent = '(no place)';
@@ -24,9 +26,28 @@
     let knownCount = 0;
     let presenceVersion = 0;
 
+    function getMinutes() {
+        return parseInt(timeWindowSlider.value, 10) || 60;
+    }
+
+    function formatMinutes(m) {
+        if (m < 60) return `${m} min`;
+        const h = Math.floor(m / 60);
+        const r = m % 60;
+        if (r === 0) return h === 1 ? '1 hour' : `${h} hours`;
+        return `${h}h ${r}m`;
+    }
+
+    timeWindowSlider.addEventListener('input', () => {
+        timeWindowLabel.textContent = formatMinutes(getMinutes());
+        presenceVersion = 0; // force refresh
+        fetchPresence();
+    });
+
     async function fetchPresence() {
         try {
-            const res = await fetch(`/fn/place/${encodeURIComponent(placeId)}/presence`);
+            const minutes = getMinutes();
+            const res = await fetch(`/fn/place/${encodeURIComponent(placeId)}/presence?minutes=${minutes}`);
             if (!res.ok) {
                 window.handleError(`Failed to fetch presence: ${res.status}`);
                 return;
@@ -44,7 +65,7 @@
 
     async function fetchEvents() {
         try {
-            const res = await fetch(`/fn/place/${encodeURIComponent(placeId)}/events`);
+            const res = await fetch(`/fn/place/${encodeURIComponent(placeId)}/events?limit=100`);
             if (!res.ok) {
                 window.handleError(`Failed to fetch events: ${res.status}`);
                 return;
@@ -54,7 +75,6 @@
             if (events.length === knownCount) return;
             knownCount = events.length;
             renderMetrics(events);
-            renderPresence(events);
             renderStream(events);
         } catch (err) {
             window.handleError('Failed to fetch events:', err);
@@ -76,14 +96,12 @@
 
         const presenceTypes = new Set();
         for (const ev of events) {
-            const type = ev.event_type || 'unknown';
-            if (type === 'faceDetected') {
-                presenceTypes.add('person:' + ((ev.payload || {}).label || 'unknown'));
-            } else if (type === 'animalDetected') {
-                const animals = (ev.payload || {}).animals || [];
-                for (const a of animals) {
-                    presenceTypes.add('animal:' + (a.class || 'pet'));
-                }
+            for (const person of (ev.people || [])) {
+                const name = person.name && person.name !== 'unknown' ? person.name : 'Person';
+                presenceTypes.add('person:' + name);
+            }
+            for (const pet of (ev.pets || [])) {
+                presenceTypes.add('pet:' + (pet.species || pet.name || 'pet'));
             }
         }
         metricPresences.textContent = presenceTypes.size;
@@ -94,16 +112,13 @@
             presenceBody.innerHTML = '<tr><td colspan="4" class="empty-state">No presence detected yet</td></tr>';
             return;
         }
-        presenceBody.innerHTML = presence.map(p => {
-            const isAnimal = p.label !== 'unidentified' && p.label !== 'unknown' && !p.label.startsWith('Person');
-            const badge = isAnimal ? 'pet' : 'person';
-            const icon = isAnimal ? '🐾 Pet' : '👤 Person';
+        presenceBody.innerHTML = presence.map(entry => {
             return `
             <tr>
-                <td><span class="badge-${badge}">${icon}</span></td>
-                <td>${escapeHtml(p.label)}</td>
-                <td>${p.event_count}</td>
-                <td>${formatTime(p.last_seen)}</td>
+                <td>${escapeHtml(entry.label)}</td>
+                <td>${formatTime(entry.last_seen)}</td>
+                <td>${formatTime(entry.first_seen)}</td>
+                <td>${entry.event_count}</td>
             </tr>`;
         }).join('');
     }
@@ -115,21 +130,55 @@
             return;
         }
         eventStream.innerHTML = sorted.map(ev => {
-            const p = ev.payload || {};
-            const type = ev.event_type || p.event_type || 'unknown';
-            let detail = '';
-            if (type === 'faceDetected') {
-                detail = `faces: ${p.faceCount || 1}`;
-            } else if (type === 'animalDetected') {
-                const names = (p.animals || []).map(a => a.class).join(', ');
-                detail = names || 'pet detected';
+            const payload = ev.payload || {};
+            const type = ev.event_type || 'unknown';
+            const snapshot = payload.snapshot || null;
+
+            // Image on top
+            const imgHtml = snapshot
+                ? `<img src="${snapshot}" alt="snapshot" />`
+                : `<div class="card-no-img">${type === 'faceDetected' ? '👤' : type === 'animalDetected' ? '🐾' : '📸'}</div>`;
+
+            // Build fields from the event (excluding snapshot/image)
+            const fields = [];
+            fields.push(cardField('type', type));
+            fields.push(cardField('time', formatTime(ev.created_at)));
+
+            // People
+            const people = ev.people || [];
+            if (people.length > 0) {
+                const names = people.map(p => p.name || 'unknown').join(', ');
+                fields.push(cardField('people', `${people.length} (${names})`));
             }
-            return `<div class="event-row">
-                <span class="event-time">${formatTime(ev.created_at)}</span>
-                <span class="event-type">${escapeHtml(type)}</span>
-                <span class="event-detail">${escapeHtml(detail)}</span>
+
+            // Pets
+            const pets = ev.pets || [];
+            if (pets.length > 0) {
+                const names = pets.map(p => p.species || p.name || 'pet').join(', ');
+                fields.push(cardField('pets', `${pets.length} (${names})`));
+            }
+
+            // Payload fields (skip snapshot & redundant keys)
+            const skipKeys = new Set(['snapshot', 'event_type', 'faceCount', 'animalCount', 'people', 'pets']);
+            if (payload.faceCount != null) fields.push(cardField('faces', String(payload.faceCount)));
+            if (payload.animalCount != null) fields.push(cardField('animals', String(payload.animalCount)));
+            for (const [k, v] of Object.entries(payload)) {
+                if (skipKeys.has(k)) continue;
+                if (v === null || v === undefined || v === '') continue;
+                const val = typeof v === 'object' ? JSON.stringify(v) : String(v);
+                if (val.length > 200) continue;
+                fields.push(cardField(k, val));
+            }
+
+            return `<div class="hub-event-card">
+                ${imgHtml}
+                <div class="card-body">${fields.join('')}</div>
             </div>`;
         }).join('');
+    }
+
+    function cardField(key, value) {
+        return `<div class="card-field"><span class="card-field-key">${escapeHtml(key)}:</span><span class="card-field-val">${escapeHtml(value)}</span></div>`;
     }
 
     function formatTime(iso) {

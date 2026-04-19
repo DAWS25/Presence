@@ -14,7 +14,6 @@
 
     <!-- Google Sign-In (loaded dynamically when presenceAuth.showSignIn() is true) -->
 </head>
-</head>
 <body class="hud-only">
     <div class="app-container">
         <!-- Main Screen -->
@@ -33,6 +32,9 @@
                         </div>
                         <div class="hud-user" id="hudUser">
                         </div>
+                        <button class="hud-settings-btn" id="settingsBtn" aria-label="Configurações">
+                            ⚙
+                        </button>
                         <div class="hud-pill is-hidden" aria-hidden="true">
                             <span class="status-value text-muted" id="statusMessage" data-i18n="hud.status.ready">✓ Pronto</span>
                         </div>
@@ -80,6 +82,29 @@
                 </div>
                 <div class="detail-content" id="detailContent">
                     <!-- Preenchido dinamicamente -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Screen -->
+        <div class="screen settings-screen is-hidden" id="settingsScreen">
+            <div class="detail-view settings-view">
+                <div class="detail-header">
+                    <span class="detail-title">Configurações</span>
+                    <button class="detail-close" id="settingsCloseBtn" aria-label="Fechar configurações">
+                        ✕
+                    </button>
+                </div>
+                <div class="detail-content settings-content">
+                    <div class="settings-panel">
+                        <div class="settings-row">
+                            <label class="settings-label" for="cooldownSlider">Cooldown Period</label>
+                            <div class="settings-control">
+                                <input type="range" id="cooldownSlider" min="5" max="300" value="15" step="1" class="settings-range">
+                                <span class="settings-value" id="cooldownValue">15s</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -1,5 +1,5 @@
 window.addEventListener('load', () => {
     setTimeout(() => {
-        new PresenceApp();
+        window.presenceApp = new PresenceApp();
     }, 500);
 });

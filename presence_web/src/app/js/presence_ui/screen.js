@@ -12,9 +12,32 @@ class ScreenManager {
         this.detailScreen = document.getElementById('detailScreen');
         this.detailContent = document.getElementById('detailContent');
         this.detailCloseBtn = document.getElementById('detailCloseBtn');
+        this.settingsScreen = document.getElementById('settingsScreen');
+        this.settingsCloseBtn = document.getElementById('settingsCloseBtn');
+        this.settingsBtn = document.getElementById('settingsBtn');
+        this.cooldownSlider = document.getElementById('cooldownSlider');
+        this.cooldownValue = document.getElementById('cooldownValue');
         
         if (this.detailCloseBtn) {
             this.detailCloseBtn.addEventListener('click', () => this.showMainScreen());
+        }
+
+        if (this.settingsBtn) {
+            this.settingsBtn.addEventListener('click', () => this.showSettingsScreen());
+        }
+
+        if (this.settingsCloseBtn) {
+            this.settingsCloseBtn.addEventListener('click', () => this.showMainScreen());
+        }
+
+        if (this.cooldownSlider) {
+            this.cooldownSlider.addEventListener('input', (e) => {
+                const val = parseInt(e.target.value, 10);
+                if (this.cooldownValue) this.cooldownValue.textContent = val + 's';
+                if (window.presenceApp) {
+                    window.presenceApp.snapshotIntervalMs = val * 1000;
+                }
+            });
         }
 
         document.addEventListener('keydown', (event) => {
@@ -33,6 +56,24 @@ class ScreenManager {
         }
         if (this.detailScreen) {
             this.detailScreen.classList.add('is-hidden');
+        }
+        if (this.settingsScreen) {
+            this.settingsScreen.classList.add('is-hidden');
+        }
+    }
+
+    /**
+     * Show the settings screen
+     */
+    showSettingsScreen() {
+        if (this.mainScreen) {
+            this.mainScreen.classList.add('is-hidden');
+        }
+        if (this.detailScreen) {
+            this.detailScreen.classList.add('is-hidden');
+        }
+        if (this.settingsScreen) {
+            this.settingsScreen.classList.remove('is-hidden');
         }
     }
 

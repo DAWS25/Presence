@@ -16,6 +16,7 @@ class NotificationManager {
         if (window.eventManager && !window.__notificationFaceListenerAdded) {
             window.eventManager.on('faceDetected', (data) => this.showFaceDetectedMessage(data));
             window.eventManager.on('animalDetected', (data) => this.showAnimalDetectedMessage(data));
+            window.eventManager.on('snapshotTaken', (data) => this.showSnapshotMessage(data));
             window.__notificationFaceListenerAdded = true;
         }
     }
@@ -39,10 +40,10 @@ class NotificationManager {
      * Show animal-detected message
      */
     showAnimalDetectedMessage(data) {
-        const { animalCount, animals } = data;
-        const names = animals.map(a => a.class).join(', ');
-        const message = animalCount > 1
-            ? `🐾 ${animalCount} pets detectados! (${names})`
+        const pets = data.pets || [];
+        const names = pets.map(p => p.name).join(', ');
+        const message = pets.length > 1
+            ? `🐾 ${pets.length} pets detectados! (${names})`
             : `🐾 Pet detectado! (${names})`;
         this.showMessage(message, 'success');
         console.log(`🐾 Animal detection event: ${names}`);
@@ -78,6 +79,13 @@ class NotificationManager {
                 this.statusEl.classList.remove('fade-out');
             }, 300);
         }, duration);
+    }
+
+    /**
+     * Show snapshot message
+     */
+    showSnapshotMessage(data) {
+        this.showMessage('📸 Snapshot enviado', 'info', 2000);
     }
 
     /**

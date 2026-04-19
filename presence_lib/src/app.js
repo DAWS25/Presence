@@ -15,9 +15,10 @@ class PresenceApp {
         this.versionStatusEl = document.getElementById('versionStatus');
         this.versionLabelEl = document.getElementById('versionLabel');
         this.captureCanvas = document.createElement('canvas');
-        this.lastEventTs = 0;
         this.lastLogTs = 0;
         this.lastDetectTs = 0;
+        this.lastSnapshotTs = 0;
+        this.snapshotIntervalMs = 15000;
         this.detectionIntervalMs = 300; // throttle detection loop
         
         this.isRunning = false;
@@ -160,39 +161,77 @@ class PresenceApp {
             }
             this.faceCountEl.textContent = detections.length;
             
-            // Emit event when faces detected (30s cooldown)
-            const now = Date.now();
-            const cooldownMs = 30000;
-            if (detections.length > 0 && window.eventManager && (now - this.lastEventTs >= cooldownMs)) {
-                const snapshot = this.getSnapshot();
-                const boxes = detections.map(det => {
-                    const box = det.detection.box;
-                    return {
-                        x: box ? box.x : null,
-                        y: box ? box.y : null,
-                        width: box ? box.width : null,
-                        height: box ? box.height : null,
-                        score: det.detection.score || null,
-                        descriptor: det.descriptor ? Array.from(det.descriptor) : null
-                    };
-                });
-
-                window.eventManager.emit('faceDetected', {
-                    faceCount: detections.length,
-                    timestamp: new Date().toISOString(),
-                    snapshot,
-                    boxes
-                });
-
-                this.lastEventTs = now;
-            }
-            
             this.draw(detections);
 
             // Animal detection (COCO-SSD)
             if (window.animalDetector && window.animalDetector.isReady) {
-                const animals = await window.animalDetector.detect();
-                window.animalDetector.draw(animals);
+                try {
+                    const animals = await window.animalDetector.detect();
+                    window.animalDetector.draw(animals);
+                } catch (animalErr) {
+                    console.warn('🐾 Animal detection error:', animalErr.message);
+                }
+            }
+
+            // Periodic snapshot every snapshotIntervalMs — always emits exactly one event
+            const snapNow = Date.now();
+            if (window.eventManager && (snapNow - this.lastSnapshotTs >= this.snapshotIntervalMs)) {
+                this.lastSnapshotTs = snapNow;
+                const snapshot = this.getSnapshot();
+                const timestamp = new Date().toISOString();
+                const faceCount = detections.length;
+                const animalCount = window.animalDetector ? window.animalDetector.lastAnimals.length : 0;
+
+                if (faceCount > 0) {
+                    window.eventManager.emit('faceDetected', {
+                        faceCount,
+                        people: detections.map(det => ({
+                            id: crypto.randomUUID(),
+                            name: 'unknown',
+                            score: det.detection.score || null,
+                            box: det.detection.box ? {
+                                x: det.detection.box.x,
+                                y: det.detection.box.y,
+                                width: det.detection.box.width,
+                                height: det.detection.box.height
+                            } : null,
+                            descriptor: det.descriptor ? Array.from(det.descriptor) : null
+                        })),
+                        pets: [],
+                        timestamp,
+                        snapshot
+                    });
+                } else if (animalCount > 0 && window.animalDetector) {
+                    const animals = window.animalDetector.lastAnimals;
+                    window.eventManager.emit('animalDetected', {
+                        animalCount,
+                        people: [],
+                        pets: animals.map(a => {
+                            const [x, y, w, h] = a.bbox;
+                            const color = window.animalDetector.extractAvgColor(x, y, w, h);
+                            return {
+                                id: crypto.randomUUID(),
+                                name: a.class,
+                                species: a.class,
+                                score: a.score,
+                                bbox: a.bbox,
+                                aspectRatio: h > 0 ? w / h : 1,
+                                color
+                            };
+                        }),
+                        timestamp,
+                        snapshot
+                    });
+                } else {
+                    window.eventManager.emit('snapshotTaken', {
+                        faceCount: 0,
+                        animalCount: 0,
+                        people: [],
+                        pets: [],
+                        timestamp,
+                        snapshot
+                    });
+                }
             }
             
         } catch (error) {

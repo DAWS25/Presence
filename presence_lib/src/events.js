@@ -9,7 +9,7 @@ class EventManager {
      */
     constructor() {
         this.listeners = {};
-        this.cooldowns = { faceDetected: 30000 }; // ms per event
+        this.cooldowns = {}; // cooldowns managed by emitters directly
         this.lastEmitTs = {};
     }
 
@@ -44,7 +44,6 @@ class EventManager {
      * Emit the event respecting cooldown, send to server, and call listeners only on success.
      */
     async emit(eventName, data) {
-        if (!this.listeners[eventName]) return;
         const cd = this.cooldowns[eventName];
         if (cd) {
             const now = Date.now();
@@ -71,8 +70,13 @@ class EventManager {
                 window.handleError(`Server rejected event ${eventName}: ${response.status} ${response.statusText}`);
                 return;
             }
+            const result = await response.json();
+            if (result.event_id) {
+                data.event_id = result.event_id;
+            }
             console.log(`🔔 Evento emitido: ${eventName}`, data);
-            this.listeners[eventName].forEach(callback => {
+            const listeners = this.listeners[eventName] || [];
+            listeners.forEach(callback => {
                 try {
                     callback(data);
                 } catch (error) {
